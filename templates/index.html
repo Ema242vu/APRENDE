@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CodeMaster Pro</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#0a0e1a;color:#fff;display:flex;height:100vh;overflow:hidden;position:relative}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 20% 10%,rgba(28,176,246,.15),transparent 50%),radial-gradient(circle at 80% 90%,rgba(233,69,96,.12),transparent 50%),radial-gradient(circle at 50% 50%,#141a2e,#0a0e1a);z-index:0}
+
+#canvas3d{position:fixed;inset:0;z-index:1;pointer-events:none}
+#aqua-handle{position:fixed;width:130px;height:200px;bottom:70px;right:30px;z-index:2;cursor:grab;pointer-events:auto;touch-action:none;border-radius:50%}
+#aqua-handle::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(28,176,246,.25),transparent 70%);animation:pulseAura 3s infinite ease-in-out;pointer-events:none}
+@keyframes pulseAura{0%,100%{opacity:.4;transform:scale(.95)}50%{opacity:.8;transform:scale(1.05)}}
+
+.main-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:15px;overflow-y:auto;position:relative;z-index:5;padding-bottom:180px;pointer-events:auto}
+
+.course-tabs{display:flex;width:100%;max-width:480px;gap:8px;margin-bottom:15px;background:rgba(22,33,62,.6);padding:6px;border-radius:16px;border:1px solid rgba(255,255,255,.06);backdrop-filter:blur(10px)}
+.course-tab{flex:1;padding:11px 8px;border-radius:12px;border:none;background:transparent;color:#8b95a5;font-weight:600;cursor:pointer;text-align:center;font-size:12px;transition:all .3s}
+.course-tab.active-python{background:linear-gradient(135deg,#58cc02,#46a302);color:#fff;box-shadow:0 4px 15px rgba(88,204,2,.4)}
+.course-tab.active-hacking{background:linear-gradient(135deg,#e94560,#c92a44);color:#fff;box-shadow:0 4px 15px rgba(233,69,96,.4)}
+.course-tab.active-termux{background:linear-gradient(135deg,#00d4aa,#00a88a);color:#fff;box-shadow:0 4px 15px rgba(0,212,170,.4)}
+
+.stats{width:100%;max-width:480px;display:flex;justify-content:space-between;gap:8px;margin-bottom:18px}
+.stat-card{flex:1;background:rgba(22,33,62,.7);padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(10px);text-align:center}
+.stat-label{font-size:9px;color:#8b95a5;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.stat-value{font-size:18px;font-weight:800;background:linear-gradient(135deg,#1cb0f6,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+.path-container{display:flex;flex-direction:column;align-items:center;gap:22px;margin-top:10px;width:100%;max-width:380px}
+.node{width:76px;height:76px;border-radius:50%;display:flex;flex-direction:column;justify-content:center;align-items:center;font-size:22px;font-weight:800;cursor:pointer;position:relative;transition:all .25s cubic-bezier(.34,1.56,.64,1);border:3px solid rgba(255,255,255,.08)}
+.node:nth-child(odd){transform:translateX(-50px)}
+.node:nth-child(even){transform:translateX(50px)}
+.node.completed{background:linear-gradient(135deg,#e94560,#a82842);color:#fff;box-shadow:0 8px 0 #5f1725,0 0 25px rgba(233,69,96,.5)}
+.node.active{background:linear-gradient(135deg,#58cc02,#3a8f01);color:#fff;box-shadow:0 8px 0 #1f5201,0 0 30px rgba(88,204,2,.7);animation:bobble 1.8s infinite ease-in-out}
+.node.active-hacking{background:linear-gradient(135deg,#e94560,#a82842);box-shadow:0 8px 0 #5f1725,0 0 30px rgba(233,69,96,.7)}
+.node.active-termux{background:linear-gradient(135deg,#00d4aa,#008f70);box-shadow:0 8px 0 #004d3c,0 0 30px rgba(0,212,170,.7)}
+.node.locked{background:linear-gradient(135deg,#1e2841,#131c2e);color:#4a5668;cursor:not-allowed;border-color:rgba(255,255,255,.03);box-shadow:0 6px 0 #080c18}
+.node:hover:not(.locked){transform:translateX(0) scale(1.08) !important;filter:brightness(1.15)}
+.node .node-num{font-size:22px;line-height:1}
+.node .node-mini{font-size:8px;opacity:.75;margin-top:2px;font-weight:600;letter-spacing:.5px}
+.node.active .node-mini,.node.completed .node-mini{color:rgba(255,255,255,.9)}
+@keyframes bobble{0%,100%{transform:scale(1) translateX(0)}50%{transform:scale(1.07) translateX(0)}}
+.node.active:nth-child(odd){animation:bobbleOdd 1.8s infinite}
+.node.active:nth-child(even){animation:bobbleEven 1.8s infinite}
+@keyframes bobbleOdd{0%,100%{transform:scale(1) translateX(-50px)}50%{transform:scale(1.07) translateX(-50px)}}
+@keyframes bobbleEven{0%,100%{transform:scale(1) translateX(50px)}50%{transform:scale(1.07) translateX(50px)}}
+
+/* Burbuja */
+#aqua-bubble{position:fixed;bottom:52%;right:15px;width:230px;background:linear-gradient(135deg,#1cb0f6,#0d7bc4);color:#fff;padding:15px 18px;border-radius:20px;font-size:13px;font-weight:600;line-height:1.45;z-index:8;box-shadow:0 10px 30px rgba(28,176,246,.45),inset 0 1px 0 rgba(255,255,255,.25);opacity:0;transform:translateY(15px) scale(.95);transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;border:1px solid rgba(255,255,255,.15)}
+#aqua-bubble::after{content:'';position:absolute;bottom:-13px;right:55px;border:12px solid transparent;border-top-color:#0d7bc4;border-bottom:0}
+#aqua-bubble.show{opacity:1;transform:translateY(0) scale(1)}
+
+/* Overlay de lección */
+.lesson-overlay{position:fixed;inset:0;background:linear-gradient(160deg,rgba(10,14,26,.97),rgba(15,22,42,.97));backdrop-filter:blur(14px);z-index:20;display:none;flex-direction:column;padding:15px;box-sizing:border-box;overflow-y:auto}
+.lesson-overlay.active{display:flex;animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.lesson-top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;gap:12px;max-width:640px;margin-left:auto;margin-right:auto;width:100%}
+.close-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:18px;cursor:pointer;font-weight:bold;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.close-btn:hover{background:rgba(255,255,255,.15)}
+.lesson-progress-bg{flex:1;height:14px;background:rgba(0,0,0,.4);border-radius:10px;overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,.6)}
+.lesson-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#58cc02,#89e219);border-radius:10px;transition:width .5s ease;box-shadow:0 0 12px rgba(88,204,2,.6)}
+.lesson-counter{color:#8b95a5;font-size:11px;font-weight:700;letter-spacing:1px;min-width:45px;text-align:right}
+
+.lesson-content{flex:1;display:flex;flex-direction:column;gap:15px;width:100%;max-width:640px;margin:0 auto;padding-bottom:20px}
+.lesson-card{background:linear-gradient(160deg,rgba(22,33,62,.95),rgba(15,22,42,.95));border-radius:22px;padding:22px;border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);display:flex;flex-direction:column;gap:14px;animation:slideUp .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.lesson-title{color:#1cb0f6;font-size:15px;font-weight:800;text-align:center;letter-spacing:1px;text-transform:uppercase;padding-bottom:12px;border-bottom:1px solid rgba(28,176,246,.2);text-shadow:0 0 20px rgba(28,176,246,.5)}
+
+.step-title{color:#58cc02;font-size:15px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.step-title::before{content:'';width:4px;height:18px;background:linear-gradient(180deg,#58cc02,#3a8f01);border-radius:2px}
+.step-text{color:#c8d1de;font-size:14px;line-height:1.7}
+.step-text code{background:rgba(0,0,0,.5);color:#58cc02;padding:2px 7px;border-radius:5px;font-family:'Courier New',monospace;font-size:13px;border:1px solid rgba(88,204,2,.2)}
+.step-text pre{background:#050810;color:#89e219;padding:14px;border-radius:12px;font-family:'Courier New',monospace;font-size:12.5px;overflow-x:auto;margin:10px 0;border-left:3px solid #58cc02;line-height:1.6;box-shadow:inset 0 2px 8px rgba(0,0,0,.5)}
+.step-text strong{color:#fff;font-weight:700}
+
+.lesson-btn{background:linear-gradient(180deg,#1cb0f6,#0d8ddb);color:#fff;border:none;border-bottom:5px solid #0a6ea8;padding:16px;border-radius:16px;font-size:15px;font-weight:800;cursor:pointer;width:100%;text-transform:uppercase;letter-spacing:1px;transition:all .1s;margin-top:8px;box-shadow:0 8px 20px rgba(28,176,246,.3)}
+.lesson-btn:active{transform:translateY(3px);border-bottom-width:2px}
+
+.quiz-question{color:#fff;font-size:16px;font-weight:700;line-height:1.5;margin-bottom:15px}
+.quiz-option{background:rgba(30,42,50,.9);color:#fff;border:2px solid #37464f;padding:15px;border-radius:14px;text-align:left;cursor:pointer;margin-bottom:10px;font-size:14px;font-weight:600;transition:all .15s;width:100%}
+.quiz-option:hover:not(:disabled){background:rgba(28,176,246,.15);border-color:#1cb0f6;transform:translateX(4px)}
+.quiz-option.correct{background:linear-gradient(135deg,#4e9f3d,#3a8f01);border-color:#58cc02;color:#fff;box-shadow:0 0 20px rgba(88,204,2,.5)}
+.quiz-option.wrong{background:linear-gradient(135deg,#d32f2f,#a82842);border-color:#e94560;color:#fff}
+.quiz-option:disabled{cursor:not-allowed}
+
+/* Chat */
+.chat-fab{position:fixed;bottom:22px;left:22px;z-index:30;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#1cb0f6,#0d7bc4);color:#fff;display:flex;justify-content:center;align-items:center;font-size:24px;cursor:pointer;box-shadow:0 8px 25px rgba(28,176,246,.5),inset 0 1px 0 rgba(255,255,255,.3);border:2px solid rgba(255,255,255,.2);transition:all .25s}
+.chat-fab:hover{transform:scale(1.1) rotate(-5deg)}
+.chat-fab.active{background:linear-gradient(135deg,#e94560,#a82842)}
+
+/* Botón toggle Aqua */
+.toggle-aqua{position:fixed;bottom:22px;left:90px;z-index:30;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#533483,#3a1e5c);color:#fff;display:flex;justify-content:center;align-items:center;font-size:20px;cursor:pointer;box-shadow:0 6px 20px rgba(83,52,131,.5);border:2px solid rgba(255,255,255,.15);transition:all .25s}
+.toggle-aqua:hover{transform:scale(1.1)}
+.toggle-aqua.off{background:linear-gradient(135deg,#37464f,#1e2a32);opacity:.6}
+
+.chat-input-bar{position:fixed;bottom:90px;left:22px;right:22px;z-index:30;display:none;gap:8px;align-items:center;background:linear-gradient(160deg,rgba(22,33,62,.98),rgba(15,22,42,.98));padding:10px;border-radius:28px;border:2px solid #1cb0f6;box-shadow:0 10px 30px rgba(0,0,0,.5);backdrop-filter:blur(10px)}
+.chat-input-bar.active{display:flex;animation:slideUp .3s}
+.chat-input-bar input{flex:1;padding:11px 16px;border-radius:22px;border:none;background:rgba(0,0,0,.5);color:#fff;outline:none;font-size:14px}
+.chat-input-bar input::placeholder{color:#4a5668}
+.chat-input-bar button{background:linear-gradient(135deg,#1cb0f6,#0d7bc4);color:#fff;border:none;border-radius:50%;width:42px;height:42px;display:flex;justify-content:center;align-items:center;cursor:pointer;font-size:16px;flex-shrink:0;transition:all .2s}
+.chat-input-bar button:active{transform:scale(.92)}
+</style>
+</head>
+<body>
+
+<canvas id="canvas3d"></canvas>
+<div id="aqua-handle"></div>
+
+<div class="lesson-overlay" id="lesson-overlay">
+<div class="lesson-top-bar">
+<button class="close-btn" onclick="closeLesson()">✕</button>
+<div class="lesson-progress-bg"><div class="lesson-progress-fill" id="lesson-progress-fill"></div></div>
+<div class="lesson-counter" id="lesson-counter">0/40</div>
+</div>
+<div class="lesson-content" id="lesson-content"></div>
+</div>
+
+<div class="main-content">
+<div class="course-tabs">
+<button class="course-tab active-python" id="tab-python" onclick="switchCourse('python')">🐍 Python</button>
+<button class="course-tab" id="tab-hacking" onclick="switchCourse('hacking')">🛡️ Hacking</button>
+<button class="course-tab" id="tab-termux" onclick="switchCourse('termux')">💻 Termux</button>
+</div>
+<div class="stats">
+<div class="stat-card"><div class="stat-label">Nivel</div><div class="stat-value" id="level">1</div></div>
+<div class="stat-card"><div class="stat-label">XP</div><div class="stat-value" id="xp">0</div></div>
+<div class="stat-card"><div class="stat-label">Progreso</div><div class="stat-value" id="progress-pct">0%</div></div>
+</div>
+<div class="path-container" id="path-container"></div>
+</div>
+
+<div id="aqua-bubble"></div>
+
+<div class="chat-fab" id="chat-fab" onclick="toggleChat()">💬</div>
+<div class="toggle-aqua" id="toggle-aqua" onclick="toggleAqua()" title="Mostrar/Ocultar Aqua">👁️</div>
+<div class="chat-input-bar" id="chat-input-bar">
+<input type="text" id="chat-input" placeholder="Escríbele a Aqua..." onkeypress="handleChatKey(event)">
+<button onclick="sendChat()">➤</button>
+</div>
+
+<script>
+// ==========================================
+// DATOS: 3 CURSOS x 40 LECCIONES
+// ==========================================
+const mk=(t,p,q,o,c)=>({t,p,q,o,c});
+
+const CURSOS = {
+python:{nombre:"Python",icono:"🐍",color:"#58cc02",color2:"#3a8f01",clase:"active-python",lecciones:[
+mk("¿Qué es Python?",[{t:"Definición",c:"Python es un lenguaje <strong>interpretado</strong>, de alto nivel y fácil de leer. Creado por Guido van Rossum en 1991."},{t:"¿Por qué es popular?",c:"Se usa en IA, ciencia de datos, desarrollo web y automatización. Su sintaxis se parece al inglés."}],"¿Quién creó Python?",["Linus Torvalds","Guido van Rossum","James Gosling","Dennis Ritchie"],1),
+mk("Tu primer programa",[{t:"El comando print",c:"Muestra texto en pantalla: <code>print(\"Hola, mundo\")</code>"},{t:"¿Dónde escribirlo?",c:"Puedes usar la consola de Python o guardarlo en un archivo <code>.py</code> y ejecutarlo."}],"¿Qué comando muestra texto?",["echo()","print()","console.log()","mostrar()"],1),
+mk("Variables",[{t:"¿Qué es una variable?",c:"Una caja donde guardas un valor. Se asigna con <code>=</code>."},{t:"Ejemplo",c:"<pre>edad = 25\nnombre = \"Ana\"</pre>"}],"¿Cómo se asigna una variable?",["edad == 25","edad = 25","edad := 25","var edad = 25"],1),
+mk("Tipos de datos",[{t:"Básicos",c:"<code>int</code> enteros, <code>float</code> decimales, <code>str</code> texto, <code>bool</code> True/False."},{t:"Detectar el tipo",c:"Usa <code>type(valor)</code> para saber de qué tipo es."}],"¿Qué tipo es 3.14?",["int","str","float","bool"],2),
+mk("Operadores aritméticos",[{t:"Básicos",c:"<code>+ - * /</code> suma, resta, multiplicación, división."},{t:"Especiales",c:"<code>//</code> división entera, <code>%</code> módulo, <code>**</code> potencia."}],"¿Qué da 10 % 3?",["3.33","3","1","0"],2),
+mk("Strings (cadenas)",[{t:"Definición",c:"Texto entre comillas: <code>\"Hola\"</code> o <code>'Mundo'</code>"},{t:"Concatenar",c:"Une textos con <code>+</code>. Con f-strings: <code>f\"Hola {nombre}\"</code>"}],"¿Cómo unir texto y variable?",["texto1 & v","texto1 + v","texto1.v","texto1 ++ v"],1),
+mk("Input del usuario",[{t:"input()",c:"Pide datos al usuario. Siempre devuelve un <strong>string</strong>."},{t:"Convertir",c:"<pre>edad = int(input(\"Edad: \"))</pre>"}],"¿Qué tipo devuelve input()?",["int","str","float","bool"],1),
+mk("Conversión de tipos",[{t:"Convertir",c:"<code>int()</code>, <code>float()</code>, <code>str()</code>, <code>bool()</code>"},{t:"Ejemplo",c:"<pre>n = int(\"5\") + 3  # 8</pre>"}],"¿Cómo convertir \"5\" a entero?",["string(5)","int(\"5\")","float(5)","str(5)"],1),
+mk("Condicional if",[{t:"if",c:"Ejecuta código si la condición es True: <pre>if edad >= 18:\n    print(\"Mayor\")</pre>"},{t:"Importante",c:"La indentación (4 espacios) es obligatoria en Python."}],"¿Qué palabra inicia una condición?",["when","if","case","switch"],1),
+mk("if/else",[{t:"else",c:"Se ejecuta cuando la condición es False: <pre>if x>0:\n    print(\"Positivo\")\nelse:\n    print(\"No positivo\")</pre>"},{t:"Anidación",c:"Puedes anidar varios if dentro de otros."}],"¿Cuándo se ejecuta else?",["Siempre","Si el if es False","Si el if es True","Nunca"],1),
+mk("elif",[{t:"Múltiples condiciones",c:"<pre>if nota>=9:\n    print(\"A\")\nelif nota>=6:\n    print(\"B\")\nelse:\n    print(\"F\")</pre>"},{t:"Orden",c:"Python evalúa de arriba a abajo y para al primer True."}],"¿Qué palabra combina if y else?",["elseif","elif","else if","elseif"],1),
+mk("Operadores lógicos",[{t:"and, or, not",c:"<code>and</code>: ambos True<br><code>or</code>: al menos uno<br><code>not</code>: invierte"}],"¿Cuál requiere AMBAS condiciones True?",["or","not","and","xor"],2),
+mk("Bucle while",[{t:"While",c:"Repite mientras la condición sea True: <pre>i=0\nwhile i<5:\n    print(i)\n    i+=1</pre>"},{t:"Cuidado",c:"Si no cambias la variable, el bucle es infinito."}],"¿Qué palabra detiene un bucle?",["stop","break","exit","end"],1),
+mk("Bucle for",[{t:"for",c:"Recorre secuencias: <pre>for i in range(5):\n    print(i)</pre>"},{t:"Sobre listas",c:"<pre>for fruta in [\"pera\",\"uva\"]:\n    print(fruta)</pre>"}],"¿Cuántas veces se ejecuta range(3)?",["2","3","4","∞"],1),
+mk("range()",[{t:"range",c:"<code>range(fin)</code>, <code>range(inicio,fin)</code>, <code>range(inicio,fin,paso)</code>"},{t:"Ejemplo",c:"<code>range(1,10,2)</code> → 1,3,5,7,9"}],"¿Qué genera range(1,4)?",["1,2,3,4","1,2,3","0,1,2,3","2,3,4"],1),
+mk("Listas",[{t:"Definición",c:"Colección ordenada: <code>[1,2,3]</code>. Índices desde 0."},{t:"Modificar",c:"<code>lista[0]=99</code>"}],"¿Qué índice tiene el primer elemento?",["1","0","-1","Depende"],1),
+mk("Métodos de listas",[{t:"Útiles",c:"<code>append(x)</code>, <code>pop()</code>, <code>remove(x)</code>, <code>len(lista)</code>"},{t:"Ejemplo",c:"<pre>nums=[1,2]\nnums.append(3)  # [1,2,3]</pre>"}],"¿Qué hace append?",["Elimina","Añade al final","Ordena","Invierte"],1),
+mk("Tuplas",[{t:"Definición",c:"Como listas pero <strong>inmutables</strong>: <code>(1,2,3)</code>"},{t:"Ventaja",c:"Más rápidas y seguras para datos que no cambian."}],"¿Qué significa que una tupla es inmutable?",["Cambia sola","No se puede modificar","Es más rápida","Es un diccionario"],1),
+mk("Sets (conjuntos)",[{t:"Definición",c:"No permiten duplicados: <code>{1,2,3}</code>"},{t:"Útil para",c:"Eliminar duplicados de una lista: <code>set([1,1,2])</code> → {1,2}"}],"¿Un set permite duplicados?",["Sí","No","Solo números","A veces"],1),
+mk("Diccionarios",[{t:"Definición",c:"Pares clave-valor: <code>{\"nombre\":\"Ana\"}</code>"},{t:"Acceder",c:"<code>dic[\"nombre\"]</code> o <code>dic.get(\"nombre\")</code>"}],"¿Cómo acceder a un valor?",["dic.nombre","dic->nombre","dic[\"nombre\"]","dic(nombre)"],2),
+mk("Métodos de dict",[{t:"Útiles",c:"<code>.keys()</code>, <code>.values()</code>, <code>.items()</code>, <code>.get()</code>"},{t:"Ejemplo",c:"<pre>for k,v in dic.items():\n    print(k,v)</pre>"}],"¿Qué devuelve .keys()?",["Valores","Pares","Claves","Tamaño"],2),
+mk("Funciones",[{t:"def",c:"Bloque reutilizable: <pre>def saludar():\n    print(\"Hola\")\nsaludar()</pre>"},{t:"Ventaja",c:"Evitas repetir código y lo haces más legible."}],"¿Qué palabra define una función?",["function","def","fun","void"],1),
+mk("Parámetros y return",[{t:"Parámetros",c:"<pre>def sumar(a,b):\n    return a+b</pre>"},{t:"return vs print",c:"<code>return</code> devuelve el valor; <code>print</code> solo muestra."}],"¿Qué palabra devuelve un valor?",["print","return","give","send"],1),
+mk("Scope de variables",[{t:"Local vs Global",c:"Variables dentro de funciones son locales. Las globales se definen fuera."},{t:"global",c:"Para modificar una global dentro de una función usa <code>global var</code>."}],"¿Dónde vive una variable local?",["En todo el programa","Solo dentro de la función","En el módulo","En el sistema"],1),
+mk("Módulos",[{t:"Importar",c:"<code>import math</code> trae todas las funciones."},{t:"Importar específico",c:"<code>from random import randint</code>"}],"¿Qué palabra trae un módulo?",["include","require","import","using"],2),
+mk("Librería random",[{t:"Útiles",c:"<code>random.randint(a,b)</code>, <code>random.choice(lista)</code>, <code>random.shuffle(lista)</code>"},{t:"Ejemplo",c:"<pre>from random import randint\nprint(randint(1,6))</pre>"}],"¿Qué hace choice?",["Elige aleatorio","Ordena","Cuenta","Suma"],0),
+mk("Manejo de errores",[{t:"try/except",c:"<pre>try:\n    n=int(input())\nexcept:\n    print(\"Error\")</pre>"},{t:"finally",c:"Se ejecuta siempre, haya error o no."}],"¿Qué bloque se ejecuta siempre?",["except","finally","else","catch"],1),
+mk("Archivos",[{t:"Modos",c:"<code>'r'</code> leer, <code>'w'</code> escribir, <code>'a'</code> añadir"},{t:"Con with",c:"<pre>with open(\"f.txt\",\"w\") as f:\n    f.write(\"Hola\")</pre>"}],"¿Qué modo escribe?",["'r'","'w'","'x'","'z'"],1),
+mk("Clases y objetos",[{t:"Clase",c:"Molde para crear objetos: <pre>class Perro:\n    def __init__(self,n):\n        self.nombre=n</pre>"},{t:"Objeto",c:"<code>mi=Perro(\"Rex\")</code>"}],"¿Qué método se llama al crear?",["__start__","__init__","__new__","__create__"],1),
+mk("Herencia",[{t:"Concepto",c:"Una clase hereda de otra: <code>class Gato(Animal)</code>"},{t:"Ventaja",c:"Reutilizas código y creas jerarquías."}],"¿Cómo se indica herencia?",["extends","inherits",":","(Padre)"],3),
+mk("Polimorfismo",[{t:"Concepto",c:"Mismo método, comportamiento distinto según la clase."},{t:"Ejemplo",c:"Perro.ladrar() y Gato.maullar() pueden llamarse ambos <code>hablar()</code>."}],"¿Qué permite el polimorfismo?",["Herencia múltiple","Mismo método distinto comportamiento","Variables globales","Bucles"],1),
+mk("List comprehension",[{t:"Sintaxis",c:"<code>[x*2 for x in range(5)]</code>"},{t:"Con filtro",c:"<code>[x for x in nums if x>0]</code>"}],"¿Qué hace [x*2 for x in [1,2]]?",["[2,4]","[1,4]","[1,2]","Error"],0),
+mk("Funciones lambda",[{t:"Sintaxis",c:"<code>lambda x: x*2</code>"},{t:"Uso",c:"Útiles para funciones cortas, sobre todo con map/filter."}],"¿Qué palabra define una lambda?",["def","func","lambda","fn"],2),
+mk("map y filter",[{t:"map",c:"Aplica función a cada elemento: <code>map(lambda x:x*2, [1,2])</code>"},{t:"filter",c:"Filtra según condición."}],"¿Qué hace filter?",["Transforma","Filtra","Ordena","Suma"],1),
+mk("Decoradores",[{t:"Concepto",c:"Funciones que envuelven a otras para añadir comportamiento."},{t:"Sintaxis",c:"<code>@mi_decorador\ndef funcion(): ...</code>"}],"¿Qué símbolo precede a un decorador?",["#","@","&","$"],1),
+mk("Generadores",[{t:"yield",c:"Devuelven valores uno a uno en lugar de toda la lista."},{t:"Ejemplo",c:"<pre>def gen():\n    yield 1\n    yield 2</pre>"}],"¿Qué palabra crea generadores?",["return","yield","give","send"],1),
+mk("Expresiones regulares",[{t:"import re",c:"Para buscar patrones en texto: <code>re.search(r\"\\d+\", texto)</code>"},{t:"Útiles",c:"<code>\\d</code> dígito, <code>\\w</code> palabra, <code>+</code> uno o más."}],"¿Qué módulo maneja regex?",["regex","re","regexp","rx"],1),
+mk("JSON",[{t:"import json",c:"<code>json.loads(texto)</code> convierte str a dict."},{t:"Escribir",c:"<code>json.dumps(obj)</code>"}],"¿Qué hace json.loads?",["Convierte a string","Convierte a dict","Elimina","Ordena"],1),
+mk("Errores comunes",[{t:"TypeError",c:"Sumar tipos incompatibles: <code>1 + \"a\"</code>"},{t:"IndexError",c:"Acceder a un índice que no existe."}],"¿Qué error da 1+\"a\"?",["ValueError","TypeError","IndexError","KeyError"],1),
+mk("Proyecto: Calculadora",[{t:"Código",c:"<pre>def calc(a,b,op):\n    if op=='+': return a+b\n    if op=='-': return a-b\n    if op=='*': return a*b\n    if op=='/': return a/b</pre>"},{t:"¡Felicidades!",c:"Has completado Python. ¡Ahora al curso de Hacking!"}],"¿Qué usar para elegir la operación?",["Bucle","Condicionales","Clases","Listas"],1)
+]},
+
+hacking:{nombre:"Hacking",icono:"🛡️",color:"#e94560",color2:"#a82842",clase:"active-hacking",lecciones:[
+mk("¿Qué es hacking ético?",[{t:"Definición",c:"Usar técnicas de atacante con permiso legal para encontrar vulnerabilidades."},{t:"Diferencia",c:"El hacker ético protege, no destruye."}],"¿Diferencia principal?",["Herramientas","Permiso legal","Sistema","Lenguaje"],1),
+mk("Tipos de hackers",[{t:"White Hat",c:"Éticos, con permiso."},{t:"Black Hat",c:"Maliciosos. Gray Hat: zona gris."}],"¿Qué hacker es legal?",["Black","Gray","White","Red"],2),
+mk("Ética y legalidad",[{t:"La ley",c:"En Colombia la Ley 1273 castiga el acceso sin permiso."},{t:"Contratos",c:"Siempre debe haber autorización escrita."}],"¿Qué necesitas antes de pentesting?",["PC potente","Contrato escrito","Anonimato","Nada"],1),
+mk("Reconocimiento pasivo",[{t:"Definición",c:"Recopilar info SIN tocar el servidor."},{t:"Técnicas",c:"Google, redes sociales, Whois, Shodan."}],"¿Qué es reconocimiento pasivo?",["Escanear","Recopilar sin tocar","Atacar","Phishing"],1),
+mk("Reconocimiento activo",[{t:"Definición",c:"Interactúas con el objetivo. Puedes ser detectado."},{t:"Técnicas",c:"ping, traceroute, nslookup"}],"¿Riesgo del activo?",["Menos info","Ser detectado","Gastar dinero","Ninguno"],1),
+mk("Google Dorking",[{t:"Qué es",c:"Búsquedas avanzadas para encontrar info expuesta."},{t:"Ejemplo",c:"<code>site:ejemplo.com filetype:pdf</code>"}],"¿Qué busca filetype:pdf?",["PDFs","Fotos","Videos","Nada"],0),
+mk("OSINT",[{t:"Definición",c:"Inteligencia de fuentes abiertas. Todo lo público."},{t:"Herramientas",c:"Maltego, theHarvester, Sherlock."}],"¿Qué es OSINT?",["Hackeo","Info pública","Malware","Firewall"],1),
+mk("Whois y DNS",[{t:"Whois",c:"Muestra quién registró un dominio."},{t:"DNS",c:"<code>nslookup dominio.com</code> muestra IP."}],"¿Qué comando muestra DNS?",["ping","nslookup","curl","wget"],1),
+mk("Nmap básico",[{t:"Qué es",c:"Escáner de puertos y servicios."},{t:"Comando",c:"<code>nmap 192.168.1.1</code>"}],"¿Para qué sirve Nmap?",["Editar fotos","Escanear puertos","Navegar","Chatear"],1),
+mk("Nmap avanzado",[{t:"-sV",c:"Detecta versiones de servicios."},{t:"-p",c:"Especifica puertos: <code>-p 80,443</code>"}],"¿Qué hace -sV?",["Escaneo rápido","Detecta versiones","Silencioso","Solo ping"],1),
+mk("Enumeración de servicios",[{t:"Definición",c:"Sacar info detallada de un servicio detectado."},{t:"Herramientas",c:"Gobuster, enum4linux, smbclient."}],"¿Qué enumera Gobuster?",["Puertos","Directorios web","Usuarios","Correos"],1),
+mk("Gobuster",[{t:"Comando",c:"<code>gobuster dir -u URL -w wordlist.txt</code>"},{t:"Uso",c:"Encuentra carpetas ocultas en webs."}],"¿Gobuster busca?",["Puertos","Directorios","Vulnerabilidades","Contraseñas"],1),
+mk("OWASP Top 10",[{t:"Qué es",c:"Lista de las 10 vulnerabilidades web más comunes."},{t:"Top 3",c:"SQLi, Auth rota, Exposición de datos."}],"¿Qué publica OWASP?",["Antivirus","Top 10 vulnerabilidades","Lenguaje","Firewall"],1),
+mk("Inyección SQL",[{t:"Qué es",c:"Meter código SQL en campos de entrada."},{t:"Ejemplo",c:"<code>' OR '1'='1</code>"}],"¿Mejor defensa contra SQLi?",["Bloquear IPs","Consultas parametrizadas","Cambiar puerto","HTTPS"],1),
+mk("SQLmap",[{t:"Qué es",c:"Herramienta automática para SQLi."},{t:"Comando",c:"<code>sqlmap -u URL --dbs</code>"}],"¿Qué hace sqlmap?",["Escanea puertos","Explota SQLi","Crackea WiFi","Sniffea"],1),
+mk("XSS",[{t:"Qué es",c:"Inyectar JavaScript malicioso."},{t:"Tipos",c:"Almacenado, reflejado, DOM-based."}],"¿Qué tipo se guarda en el servidor?",["Reflejado","DOM","Almacenado","Pasivo"],2),
+mk("CSRF",[{t:"Qué es",c:"Engañar a un usuario logueado para ejecutar acciones."},{t:"Defensa",c:"Tokens CSRF únicos."}],"¿Qué previene CSRF?",["JWT","Token CSRF","SSH","API key"],1),
+mk("SSRF",[{t:"Qué es",c:"Forzar al servidor a hacer peticiones a lugares internos."},{t:"Impacto",c:"Acceso a servicios internos."}],"¿A qué apunta SSRF?",["Al cliente","Al servidor","Al router","Al usuario"],1),
+mk("Fuerza bruta",[{t:"Qué es",c:"Probar muchas combinaciones."},{t:"Herramientas",c:"Hydra, John, Hashcat."}],"¿Cuál NO es de fuerza bruta?",["Hydra","John","Hashcat","Nmap"],3),
+mk("Hydra",[{t:"Comando",c:"<code>hydra -l user -P pass.txt ssh://IP</code>"},{t:"Uso",c:"Ataca servicios de login."}],"¿Hydra ataca?",["Archivos","Logins","Redes","Fotos"],1),
+mk("John the Ripper",[{t:"Qué hace",c:"Crackea hashes de contraseñas."},{t:"Comando",c:"<code>john hash.txt</code>"}],"¿Qué crackea John?",["WiFi","Hashes","Redes","PDFs"],1),
+mk("Hashcat",[{t:"Qué es",c:"Crackeador de hashes con GPU."},{t:"Modos",c:"Dictado, fuerza bruta, máscara."}],"¿Hashcat usa?",["CPU solo","GPU","Solo RAM","Nada"],1),
+mk("Ingeniería social",[{t:"Qué es",c:"Manipular personas para obtener info."},{t:"Técnicas",c:"Pretexting, baiting, tailgating."}],"¿Eslabón más débil?",["Firewall","Humano","Servidor","Red"],1),
+mk("Phishing ético",[{t:"Qué es",c:"Correos falsos para probar conciencia."},{t:"Señales",c:"Urgencia, errores, links raros."}],"¿Señal de phishing?",["Buena ortografía","Urgencia y links raros","Remitente conocido","Sin links"],1),
+mk("Sniffing",[{t:"Qué es",c:"Capturar paquetes de red."},{t:"Herramienta",c:"Wireshark."}],"¿Herramienta de sniffing?",["Nmap","Wireshark","Hydra","Gobuster"],1),
+mk("Wireshark",[{t:"Qué es",c:"Analizador de tráfico."},{t:"Uso",c:"Ver qué pasa en tu red."}],"¿Wireshark sirve para?",["Editar","Analizar tráfico","Hackear WiFi","Crackear"],1),
+mk("MITM",[{t:"Man in the Middle",c:"Atacante entre dos partes."},{t:"Riesgo",c:"Espía y modifica comunicación."}],"¿Qué es MITM?",["Firewall","Ataque intermediario","Antivirus","VPN"],1),
+mk("ARP Spoofing",[{t:"Qué es",c:"Falsificar ARP para interceptar tráfico."},{t:"Herramienta",c:"Ettercap, Bettercap."}],"¿Qué envenena ARP?",["DNS","Tabla ARP","Firewall","CPU"],1),
+mk("Criptografía básica",[{t:"Simétrica",c:"Una clave: AES."},{t:"Asimétrica",c:"Pública/privada: RSA."}],"¿Qué tipo usa una sola clave?",["Asimétrico","Simétrico","Híbrido","Cuántico"],1),
+mk("Hashing",[{t:"Qué es",c:"Función irreversible: 'hola' → '5d41402...'"},{t:"Algoritmos",c:"SHA-256, bcrypt."}],"¿Qué se añade antes de hashear?",["Token","Sal","Pin","Hash"],1),
+mk("SSL/TLS",[{t:"Qué es",c:"Cifrado de comunicaciones web."},{t:"HTTPS",c:"Usa TLS. La 's' significa seguro."}],"¿Qué usa HTTPS?",["AES solo","TLS","MD5","FTP"],1),
+mk("Firewalls",[{t:"Qué es",c:"Filtra tráfico por reglas."},{t:"Tipos",c:"Red, host, WAF."}],"¿Qué firewall protege webs?",["NAT","WAF","DMZ","VPN"],1),
+mk("IDS/IPS",[{t:"IDS",c:"Detecta intrusiones."},{t:"IPS",c:"Detecta Y bloquea."}],"¿Qué hace IPS además de detectar?",["Nada","Bloquea","Notifica","Reinicia"],1),
+mk("Metasploit",[{t:"Qué es",c:"Framework de exploits."},{t:"Componentes",c:"Exploit, Payload, Auxiliary."}],"¿Qué es un payload?",["Escáner","Lo que ejecuta tras exploit","Firewall","Objetivo"],1),
+mk("Payloads",[{t:"Tipos",c:"Reverse shell, bind shell, meterpreter."},{t:"Uso",c:"Controlar sistema tras explotar."}],"¿Qué hace un reverse shell?",["Conecta a ti","Te conecta a él","Cierra","Reinicia"],0),
+mk("Post-explotación",[{t:"Qué es",c:"Qué haces tras entrar."},{t:"Tareas",c:"Escalar privilegios, persistencia, mover lateralmente."}],"¿Qué es persistencia?",["Cerrar","Mantener acceso","Salir","Reiniciar"],1),
+mk("Reportes",[{t:"Importancia",c:"Documentar todo lo encontrado."},{t:"Estructura",c:"Resumen, metodología, hallazgos, recomendaciones."}],"¿Qué incluye el reporte?",["Solo pruebas","Resumen y hallazgos","Fotos","Nada"],1),
+mk("Bug Bounty",[{t:"Qué es",c:"Programas que pagan por reportar vulnerabilidades."},{t:"Plataformas",c:"HackerOne, Bugcrowd."}],"¿Qué paga Bug Bounty?",["Por hackear","Por reportar","Por callar","Por nada"],1),
+mk("Certificaciones",[{t:"Populares",c:"CEH, OSCP, eJPT."},{t:"OSCP",c:"La más respetada. 24h de examen."}],"¿Cuál es la más práctica?",["CEH","OSCP","CompTIA","CISSP"],1),
+mk("Proyecto: Laboratorio",[{t:"Objetivo",c:"Montar lab con máquinas vulnerables."},{t:"Herramientas",c:"VirtualBox, Kali, Metasploitable."}],"¿Máquina vulnerable famosa?",["Win 11","Kali","Metasploitable","Ubuntu"],2)
+]},
+
+termux:{nombre:"Termux",icono:"💻",color:"#00d4aa",color2:"#008f70",clase:"active-termux",lecciones:[
+mk("¿Qué es Termux?",[{t:"Definición",c:"Emulador de terminal Linux para Android. No requiere root."},{t:"Instalación",c:"Descárgalo desde F-Droid (NO Play Store)."}],"¿De dónde se instala Termux?",["Play Store","F-Droid","App Store","APK random"],1),
+mk("Comandos básicos",[{t:"Navegación",c:"<code>ls</code> lista, <code>cd</code> cambia dir, <code>pwd</code> muestra ruta."},{t:"Archivos",c:"<code>mkdir</code>, <code>rm</code>, <code>cp</code>, <code>mv</code>"}],"¿Qué comando lista archivos?",["cd","ls","pwd","rm"],1),
+mk("Gestión de paquetes",[{t:"pkg/apt",c:"<code>pkg update</code>, <code>pkg install git</code>"},{t:"Buscar",c:"<code>pkg search nombre</code>"}],"¿Cómo instalas un paquete?",["apt get","pkg install","install","get pkg"],1),
+mk("Almacenamiento",[{t:"termux-setup-storage",c:"Da acceso a Descargas, Fotos, etc."},{t:"Ruta",c:"<code>~/storage/downloads</code>"}],"¿Qué hace termux-setup-storage?",["Borra","Da permisos","Instala","Reinicia"],1),
+mk("Editor nano",[{t:"Uso",c:"<code>nano archivo.txt</code>"},{t:"Guardar",c:"Ctrl+O, Enter, Ctrl+X para salir."}],"¿Cómo guardas en nano?",["Ctrl+S","Ctrl+O","Ctrl+W","Ctrl+Q"],1),
+mk("Variables de entorno",[{t:"Ver",c:"<code>echo $HOME</code>"},{t:"Crear",c:"<code>export MI_VAR=valor</code>"}],"¿Cómo ves una variable?",["print $VAR","echo $VAR","show $VAR","cat $VAR"],1),
+mk("SSH desde Termux",[{t:"Conectar",c:"<code>ssh usuario@ip</code>"},{t:"Generar clave",c:"<code>ssh-keygen -t rsa</code>"}],"¿Qué comando conecta por SSH?",["connect","ssh","telnet","ftp"],1),
+mk("Git en Termux",[{t:"Instalar",c:"<code>pkg install git</code>"},{t:"Clonar",c:"<code>git clone URL</code>"}],"¿Qué clona un repo?",["git pull","git clone","git get","git fetch"],1),
+mk("Python en Termux",[{t:"Instalar",c:"<code>pkg install python</code>"},{t:"Ejecutar",c:"<code>python script.py</code>"}],"¿Cómo ejecutas un script?",["run","python script.py","exec","start"],1),
+mk("pip en Termux",[{t:"Instalar lib",c:"<code>pip install requests</code>"},{t:"Actualizar",c:"<code>pip install --upgrade paquete</code>"}],"¿Qué instala librerías?",["pkg","pip","apt","get"],1),
+mk("Nmap en Termux",[{t:"Instalar",c:"<code>pkg install nmap</code>"},{t:"Uso",c:"<code>nmap -sV IP</code>"}],"¿Qué escanea Nmap?",["Archivos","Puertos","Redes sociales","Fotos"],1),
+mk("Escaneo con Nmap",[{t:"Comando",c:"<code>nmap -sV -p 1-1000 IP</code>"},{t:"Salida",c:"Muestra puertos abiertos y versiones."}],"¿Qué hace -sV?",["Escaneo rápido","Detecta versiones","Silencioso","Ping"],1),
+mk("Metasploit en Termux",[{t:"Instalar",c:"<code>pkg install metasploit</code>"},{t:"Iniciar",c:"<code>msfconsole</code>"}],"¿Qué comando inicia Metasploit?",["msf","msfconsole","meta","run"],1),
+mk("Hydra en Termux",[{t:"Instalar",c:"<code>pkg install hydra</code>"},{t:"Uso",c:"Ataques de fuerza bruta."}],"¿Qué ataca Hydra?",["Hashes","Logins","WiFi","Fotos"],1),
+mk("Hashcat en Termux",[{t:"Instalar",c:"<code>pkg install hashcat</code>"},{t:"Uso",c:"Crackear hashes con CPU."}],"¿Qué crackea Hashcat?",["Logins","Hashes","WiFi","PDF"],1),
+mk("Scripting bash",[{t:"Shebang",c:"<code>#!/bin/bash</code> al inicio."},{t:"Ejecutar",c:"<code>chmod +x script.sh && ./script.sh</code>"}],"¿Qué comando da permisos?",["chmod +x","chown","chgrp","sudo"],0),
+mk("Automatización",[{t:"Bucles",c:"<code>for i in {1..10}; do echo $i; done</code>"},{t:"Condicionales",c:"<code>if [ -f archivo ]; then ... fi</code>"}],"¿Qué hace for i in {1..3}?",["Repite 3 veces","Repite 1 vez","Nada","Error"],0),
+mk("Cron jobs",[{t:"Qué es",c:"Ejecutar tareas automáticamente."},{t:"Editar",c:"<code>crontab -e</code>"}],"¿Qué edita Cron?",["cronedit","crontab -e","edit cron","cron -e"],1),
+mk("Redes en Termux",[{t:"Ver IP",c:"<code>ifconfig</code> o <code>ip a</code>"},{t:"Ping",c:"<code>ping google.com</code>"}],"¿Qué comando muestra la IP?",["showip","ifconfig","ipshow","net"],1),
+mk("WiFi audit",[{t:"Requiere root",c:"Termux normal no puede escanear WiFi."},{t:"Alternativa",c:"Usar termux-api o root."}],"¿Termux normal puede escanear WiFi?",["Sí","No","Con suerte","A veces"],1),
+mk("Aircrack-ng",[{t:"Requiere",c:"Root y adaptador WiFi compatible."},{t:"Uso",c:"Auditoría de redes WiFi."}],"¿Qué necesita Aircrack?",["Nada","Root y adaptador","Solo WiFi","Bluetooth"],1),
+mk("Análisis de tráfico",[{t:"tcpdump",c:"<code>pkg install tcpdump</code>"},{t:"Uso",c:"<code>tcpdump -i wlan0</code>"}],"¿Qué analiza tcpdump?",["Archivos","Tráfico de red","Fotos","Música"],1),
+mk("Captura de paquetes",[{t:"tcpdump",c:"Guarda en archivo: <code>-w captura.pcap</code>"},{t:"Ver con",c:"Wireshark en PC."}],"¿Qué extensión usan las capturas?",[".txt",".pcap",".log",".cap"],1),
+mk("SQLmap en Termux",[{t:"Instalar",c:"<code>pip install sqlmap</code>"},{t:"Uso",c:"<code>sqlmap -u URL --dbs</code>"}],"¿Qué explota SQLmap?",["XSS","SQLi","CSRF","SSRF"],1),
+mk("Gobuster en Termux",[{t:"Instalar",c:"<code>pkg install gobuster</code>"},{t:"Uso",c:"Busca directorios web."}],"¿Qué busca Gobuster?",["Puertos","Directorios","Usuarios","Correos"],1),
+mk("Burp Suite alternativa",[{t:"Proxydroid",c:"Proxy para Android."},{t:"Uso",c:"Interceptar tráfico HTTP."}],"¿Alternativa a Burp en Android?",["Proxydroid","Wireshark","Nmap","Hydra"],0),
+mk("Ngrok y túneles",[{t:"Qué es",c:"Exponer tu servidor local a Internet."},{t:"Uso",c:"<code>ngrok http 5000</code>"}],"¿Qué hace ngrok?",["Túnel","Escaneo","Crackeo","Sniffing"],0),
+mk("Servidores web locales",[{t:"Python",c:"<code>python -m http.server 8000</code>"},{t:"Acceso",c:"http://localhost:8000"}],"¿Qué comando sirve un servidor?",["serve","python -m http.server","start server","web"],1),
+mk("Python para hacking",[{t:"Socket",c:"<code>import socket</code> para conexiones."},{t:"Requests",c:"<code>import requests</code> para HTTP."}],"¿Qué librería hace peticiones HTTP?",["socket","requests","os","sys"],1),
+mk("Web scraping",[{t:"BeautifulSoup",c:"<code>pip install beautifulsoup4</code>"},{t:"Uso",c:"Extraer datos de webs."}],"¿Qué librería extrae HTML?",["numpy","BeautifulSoup","pandas","flask"],1),
+mk("API requests",[{t:"GET",c:"<code>requests.get(url)</code>"},{t:"POST",c:"<code>requests.post(url, json=data)</code>"}],"¿Qué método envía datos?",["GET","POST","PUT","DELETE"],1),
+mk("OSINT con Termux",[{t:"Sherlock",c:"Busca usuarios en redes: <code>pip install sherlock-project</code>"},{t:"theHarvester",c:"Recolecta correos y subdominios."}],"¿Qué hace Sherlock?",["Escanea","Busca usuarios","Crackea","Sniffea"],1),
+mk("Reconocimiento",[{t:"whois",c:"<code>pkg install whois</code>"},{t:"dnsutils",c:"<code>nslookup dominio</code>"}],"¿Qué muestra whois?",["Dueño de dominio","Puertos","Vulnerabilidades","Fotos"],0),
+mk("Reporting",[{t:"Importancia",c:"Documentar hallazgos."},{t:"Formato",c:"Markdown, PDF."}],"¿Qué se documenta?",["Solo comandos","Hallazgos y evidencias","Nada","Fotos"],1),
+mk("Seguridad Termux",[{t:"Backup",c:"<code>termux-backup</code>"},{t:"Actualizar",c:"<code>pkg upgrade</code>"}],"¿Qué comando actualiza?",["upgrade","update","update-all","apt-get up"],0),
+mk("Backup y sync",[{t:"termux-backup",c:"Copia de seguridad."},{t:"termux-restore",c:"Restaura."}],"¿Qué restaura el backup?",["restore","termux-restore","copy","back"],1),
+mk("Termux API",[{t:"Qué es",c:"Accede a cámara, SMS, GPS, etc."},{t:"Instalar",c:"<code>pkg install termux-api</code>"}],"¿Qué permite Termux API?",["Solo terminal","Acceder a hardware","Jugar","Nada"],1),
+mk("Proyecto: Toolkit",[{t:"Objetivo",c:"Script que automatiza tareas de pentesting."},{t:"Ideas",c:"Escaneo, reporte, fuerza bruta combinados."}],"¿Qué automatizas?",["Todo","Solo scan","Solo brute","Nada"],0)
+]}
+};
+
+// ==========================================
+// ESTADO
+// ==========================================
+let cursoActual='python';
+let progreso={python:0,hacking:0,termux:0};
+let xp=0,level=1;
+let aquaVisible=true;
+
+const pathContainer=document.getElementById('path-container');
+const lessonOverlay=document.getElementById('lesson-overlay');
+const lessonContent=document.getElementById('lesson-content');
+const lessonProgressFill=document.getElementById('lesson-progress-fill');
+const lessonCounter=document.getElementById('lesson-counter');
+const aquaBubble=document.getElementById('aqua-bubble');
+const aquaHandle=document.getElementById('aqua-handle');
+
+// ==========================================
+// RENDER
+// ==========================================
+function renderPath(){
+  const curso=CURSOS[cursoActual];
+  const prog=progreso[cursoActual];
+  pathContainer.innerHTML='';
+  curso.lecciones.forEach((l,i)=>{
+    const n=document.createElement('div');
+    n.className='node';
+    n.innerHTML=`<span class="node-num">${i+1}</span><span class="node-mini">${l.t.substring(0,10)}</span>`;
+    if(i<prog){n.classList.add('completed');n.onclick=()=>abrirLeccion(i);}
+    else if(i===prog){n.classList.add('active');if(cursoActual==='hacking')n.classList.add('active-hacking');if(cursoActual==='termux')n.classList.add('active-termux');n.onclick=()=>abrirLeccion(i);}
+    else{n.classList.add('locked');n.innerHTML='🔒';n.onclick=()=>aquaSpeak("¡Bloqueado! Termina las anteriores. 😈",2500);}
+    pathContainer.appendChild(n);
+  });
+  document.getElementById('tab-python').className='course-tab'+(cursoActual==='python'?' active-python':'');
+  document.getElementById('tab-hacking').className='course-tab'+(cursoActual==='hacking'?' active-hacking':'');
+  document.getElementById('tab-termux').className='course-tab'+(cursoActual==='termux'?' active-termux':'');
+  const pct=Math.round((prog/curso.lecciones.length)*100);
+  document.getElementById('progress-pct').innerText=pct+'%';
+}
+
+function switchCourse(c){
+  cursoActual=c;
+  renderPath();
+  aquaSpeak(`¡Curso de ${CURSOS[c].nombre}! Vamos. 😏`,2500);
+}
+
+// ==========================================
+// LECCIONES
+// ==========================================
+function abrirLeccion(idx){
+  const lec=CURSOS[cursoActual].lecciones[idx];
+  lessonOverlay.classList.add('active');
+  lessonCounter.innerText=`${idx+1}/${CURSOS[cursoActual].lecciones.length}`;
+  lessonProgressFill.style.background=`linear-gradient(90deg,${CURSOS[cursoActual].color},${CURSOS[cursoActual].color2})`;
+  let paso=0;
+
+  function pasoMostrar(){
+    if(paso<lec.p.length){
+      const p=lec.p[paso];
+      lessonContent.innerHTML=`<div class="lesson-card">
+        <div class="lesson-title">📖 ${lec.t}</div>
+        <div class="step-title">${p.t}</div>
+        <div class="step-text">${p.c}</div>
+        <button class="lesson-btn" id="btn-next">SIGUIENTE ➤</button>
+      </div>`;
+      document.getElementById('btn-next').onclick=()=>{paso++;pasoMostrar();};
+      lessonProgressFill.style.width=((paso+1)/(lec.p.length+1)*100)+'%';
+    } else mostrarQuiz();
+  }
+
+  function mostrarQuiz(){
+    let html=`<div class="lesson-card">
+      <div class="lesson-title">🧠 Pon a prueba</div>
+      <div class="quiz-question">${lec.q}</div>`;
+    lec.o.forEach((op,i)=>{html+=`<button class="quiz-option" data-i="${i}">${op}</button>`;});
+    html+=`</div>`;
+    lessonContent.innerHTML=html;
+    lessonProgressFill.style.width='90%';
+    document.querySelectorAll('.quiz-option').forEach(b=>{
+      b.onclick=()=>{
+        const i=parseInt(b.dataset.i);
+        document.querySelectorAll('.quiz-option').forEach(x=>x.disabled=true);
+        if(i===lec.c){
+          b.classList.add('correct');
+          lessonProgressFill.style.width='100%';
+          addXP(15);
+          if(progreso[cursoActual]===idx)progreso[cursoActual]++;
+          setTimeout(()=>{cerrarLeccion();renderPath();aquaSpeak("¡Excelente! ✨",2500);},1400);
+        } else {
+          b.classList.add('wrong');
+          document.querySelectorAll('.quiz-option')[lec.c].classList.add('correct');
+          aquaSpeak("¡Ay, no! ¡Estudia más! 😭",3000);
+          setTimeout(()=>cerrarLeccion(),2200);
+        }
+      };
+    });
+  }
+  pasoMostrar();
+}
+function cerrarLeccion(){lessonOverlay.classList.remove('active');}
+
+function addXP(n){
+  xp+=n;
+  document.getElementById('xp').innerText=xp;
+  if(xp>=100){level++;xp-=100;document.getElementById('level').innerText=level;}
+}
+
+// ==========================================
+// AQUA
+// ==========================================
+function aquaSpeak(text,dur=3000){
+  if(!aquaVisible)return;
+  aquaBubble.innerText=text;
+  aquaBubble.classList.add('show');
+  clearTimeout(window.bT);
+  window.bT=setTimeout(()=>aquaBubble.classList.remove('show'),dur);
+  const s=window.speechSynthesis;
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='es-ES';u.rate=1.0;u.pitch=1.4;s.cancel();s.speak(u);
+}
+
+// Toggle Aqua
+function toggleAqua(){
+  aquaVisible=!aquaVisible;
+  const c=document.getElementById('canvas3d');
+  const h=document.getElementById('aqua-handle');
+  const t=document.getElementById('toggle-aqua');
+  c.style.opacity=aquaVisible?'1':'0';
+  h.style.display=aquaVisible?'block':'none';
+  aquaBubble.classList.remove('show');
+  t.classList.toggle('off',!aquaVisible);
+  t.innerText=aquaVisible?'👁️':'🚫';
+}
+
+// ==========================================
+// DRAG AQUA
+// ==========================================
+let dragging=false,startX=0,startY=0,startL=0,startT=0;
+aquaHandle.addEventListener('pointerdown',e=>{
+  dragging=true;
+  const r=aquaHandle.getBoundingClientRect();
+  startX=e.clientX;startY=e.clientY;startL=r.left;startT=r.top;
+  aquaHandle.style.cursor='grabbing';
+  aquaHandle.setPointerCapture(e.pointerId);
+});
+aquaHandle.addEventListener('pointermove',e=>{
+  if(!dragging)return;
+  const dx=e.clientX-startX,dy=e.clientY-startY;
+  const w=window.innerWidth,h=window.innerHeight;
+  const newL=Math.max(0,Math.min(w-130,startL+dx));
+  const newT=Math.max(0,Math.min(h-200,startT+dy));
+  aquaHandle.style.left=newL+'px';
+  aquaHandle.style.top=newT+'px';
+  aquaHandle.style.right='auto';
+  aquaHandle.style.bottom='auto';
+  updateAqua3D(newL+65,newT+100);
+});
+aquaHandle.addEventListener('pointerup',e=>{dragging=false;aquaHandle.style.cursor='grab';});
+
+function updateAqua3D(px,py){
+  if(!modelo3D)return;
+  const w=window.innerWidth,h=window.innerHeight;
+  const scale=(8*Math.tan(Math.PI/8)*2)/h;
+  const wx=(px-w/2)*scale;
+  const wy=-(py-h/2)*scale+1.0;
+  modelo3D.position.x=wx;
+  modelo3D.position.y=wy;
+  aquaBaseX=wx;aquaBaseY=wy;
+}
+
+// ==========================================
+// CHAT
+// ==========================================
+function toggleChat(){
+  const b=document.getElementById('chat-input-bar');
+  const f=document.getElementById('chat-fab');
+  b.classList.toggle('active');
+  f.classList.toggle('active');
+  if(b.classList.contains('active')){document.getElementById('chat-input').focus();f.innerText='✕';}
+  else f.innerText='💬';
+}
+function handleChatKey(e){if(e.key==='Enter')sendChat();}
+function sendChat(){
+  const i=document.getElementById('chat-input');
+  const t=i.value.trim();
+  if(!t)return;
+  i.value='';
+  const rs=[
+    "¡Mmm! ¿Eso es una pregunta para una diosa? Estudia mejor. 😏",
+    "¡Kazuma! Digo... ¡tú! Concéntrate.",
+    "Buena pregunta, pero está en las lecciones.",
+    "¡Soy una diosa, no una enciclopedia!",
+    "¡No me molestes mientras descanso, mortal!"
+  ];
+  aquaSpeak(rs[Math.floor(Math.random()*rs.length)],3500);
+}
+
+// ==========================================
+// THREE.JS
+// ==========================================
+const canvas=document.getElementById('canvas3d');
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,.1,1000);
+camera.position.set(0,1,8);
+
+const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+scene.add(new THREE.AmbientLight(0xffffff,.9));
+const d=new THREE.DirectionalLight(0xffffff,1.5);d.position.set(2,5,5);scene.add(d);
+const blue=new THREE.PointLight(0x1cb0f6,2,12);blue.position.set(-2,1,2);scene.add(blue);
+const pink=new THREE.PointLight(0xe94560,1,12);pink.position.set(2,0,2);scene.add(pink);
+
+let modelo3D,aquaBaseX=0,aquaBaseY=0;
+const loader=new THREE.GLTFLoader();
+loader.load('/static/aqua__anime_chibi_model.glb',g=>{
+  modelo3D=g.scene;
+  modelo3D.scale.set(1.3,1.3,1.3);
+  const r=aquaHandle.getBoundingClientRect();
+  updateAqua3D(r.left+65,r.top+100);
+  scene.add(modelo3D);
+},undefined,e=>console.error(e));
+
+const clock=new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  if(modelo3D&&!dragging){
+    modelo3D.position.y=aquaBaseY+Math.sin(clock.getElapsedTime()*2)*.05;
+  }
+  renderer.render(scene,camera);
+}
+animate();
+
+window.addEventListener('resize',()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
+// ==========================================
+// INIT
+// ==========================================
+renderPath();
+setTimeout(()=>aquaSpeak("¡Bienvenido! Elige un curso y empieza. 😏",4000),800);
+</script>
+</body>
+</html>
