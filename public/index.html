@@ -133,13 +133,23 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 .welcome-progress{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
 .welcome-dot{width:10px;height:10px;border-radius:50%;background:#2a3a52;transition:all .3s}
 .welcome-dot.active{background:#1cb0f6;width:28px;border-radius:5px}
+/* DEBUG PANEL */
+#debug-panel{position:fixed;top:60px;left:10px;right:10px;background:rgba(0,0,0,.95);color:#0f0;font-family:'Courier New',monospace;font-size:11px;padding:10px;border-radius:10px;z-index:9999;max-height:220px;overflow-y:auto;display:none;border:2px solid #0f0}
+#debug-panel.show{display:block}
+#debug-panel .dbg-close{position:absolute;top:5px;right:8px;background:#f00;color:#fff;border:none;padding:3px 8px;border-radius:5px;font-weight:bold;cursor:pointer;font-size:10px}
+.dbg-btn{position:fixed;bottom:22px;left:150px;z-index:161;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f39c12,#c87f0a);color:#fff;display:flex;justify-content:center;align-items:center;font-size:22px;cursor:pointer;border:2px solid rgba(255,255,255,.2);box-shadow:0 4px 15px rgba(243,156,18,.5)}
 </style>
 </head>
 <body>
 <canvas id="canvas3d"></canvas>
 <div id="aqua-handle"></div>
 
-<div id="welcome-overlay" style="display:none"><div class="welcome-container"><div class="welcome-progress" id="welcome-progress"></div><div class="welcome-logo">CodeMaster</div><p class="welcome-sub" id="welcome-sub">Tu aventura comienza</p><div class="welcome-card" id="welcome-card"></div><button class="welcome-btn" onclick="welcomeNext()">SIGUIENTE ➤</button></div></div>
+<div id="debug-panel">
+<button class="dbg-close" onclick="document.getElementById('debug-panel').classList.remove('show')">CERRAR</button>
+<div id="debug-content"></div>
+</div>
+
+<div id="welcome-overlay" style="display:none"><div class="welcome-container"><div class="welcome-progress" id="welcome-progress"></div><div class="welcome-logo">CodeMaster</div><p id="welcome-sub">Tu aventura comienza</p><div class="welcome-card" id="welcome-card"></div><button class="welcome-btn" onclick="welcomeNext()">SIGUIENTE ➤</button></div></div>
 
 <div id="auth-overlay">
 <h1>CodeMaster</h1>
@@ -199,11 +209,27 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 <div class="toast" id="toast"></div>
 <div class="chat-fab" onclick="toggleChat()">💬</div>
 <div class="toggle-aqua" id="toggle-aqua" onclick="toggleAqua()">👁️</div>
+<div class="dbg-btn" onclick="toggleDebug()">🐛</div>
 <div class="chat-input-bar" id="chat-input-bar"><input type="text" id="chat-input" placeholder="Escribe..." onkeypress="handleChatKey(event)"><button onclick="sendChat()">➤</button></div>
 
 <script>
 // ============================================
-// CONFIG
+// DEBUG PANEL
+// ============================================
+function dbg(msg,color='#0f0'){
+const c=document.getElementById('debug-content');
+const line=document.createElement('div');
+line.style.color=color;
+line.innerText='> '+msg;
+c.appendChild(line);
+c.scrollTop=c.scrollHeight;
+console.log(msg);
+}
+function toggleDebug(){document.getElementById('debug-panel').classList.toggle('show');}
+window.onerror=function(msg,url,line){dbg('❌ ERROR: '+msg+' (línea '+line+')','#f00');};
+
+// ============================================
+// FIREBASE CONFIG
 // ============================================
 const firebaseConfig={apiKey:"AIzaSyCv9HVAlFaErjnncku9dFfcL1x664RCF9Q",authDomain:"aprende-97487.firebaseapp.com",projectId:"aprende-97487",storageBucket:"aprende-97487.firebasestorage.app",messagingSenderId:"678435140057",appId:"1:678435140057:web:97d9937c2cb2db330ca9c8"};
 firebase.initializeApp(firebaseConfig);
@@ -241,7 +267,7 @@ const WELCOME_STEPS=[
 // ============================================
 // GENERADOR: SIEMPRE 300 LECCIONES EXACTAS
 // ============================================
-function generarLecciones(base, total, categoria){
+function generarLecciones(base,total,categoria){
 const L=[];
 const niveles=["Conceptos","Práctica","Ejemplos","Teoría","Ejercicios","Avanzado","Aplicación","Desafío","Repaso","Proyecto"];
 for(let i=0;i<total;i++){
@@ -270,19 +296,17 @@ q:[
 return L;
 }
 
-// Bases cortas de temas por curso
-const PY_BASE=["Introducción a Python","Instalar Python","Variables","Tipos de datos","Operadores aritméticos","Strings","Input del usuario","Conversión de tipos","Condicional if","if/else","elif","Operadores lógicos","Bucle while","Bucle for","range()","Listas","Métodos de listas","Tuplas","Sets","Diccionarios","Métodos de dict","Funciones","Parámetros y return","Scope","Módulos","Librería random","Try/except","Archivos","Clases y objetos","Herencia","Polimorfismo","List comprehension","Lambda","map/filter","Decoradores","Generadores","Regex","JSON","Errores comunes","Proyecto Calculadora","Slicing","Listas anidadas","Sort","Copy vs deepcopy","enumerate","zip","*args","**kwargs","Closures","Recursión","Memoization","Context managers","CSV","Módulo os","Módulo sys","pathlib","datetime","math","Threading","Multiprocessing","Async/Await","Requests HTTP","API REST","BeautifulSoup","SQLite","SQL CRUD","Métodos especiales","Property","Static methods","Class methods","Herencia múltiple","Dataclasses","Enum","Type hints","unittest","pytest","Logging","Virtualenv","pip avanzado","Profiling","Flask API","Django","FastAPI"];
-const HK_BASE=["¿Qué es hacking ético?","Tipos de hackers","Ética y legalidad","Recon pasivo","Recon activo","Google Dorking","OSINT","Whois y DNS","Nmap básico","Nmap avanzado","Enumeración","Gobuster","OWASP Top 10","SQL injection","SQLmap","XSS","CSRF","SSRF","Fuerza bruta","Hydra","John the Ripper","Hashcat","Ingeniería social","Phishing","Sniffing","Wireshark","MITM","ARP Spoofing","Cripto básica","Hashing","SSL/TLS","Firewalls","IDS/IPS","Metasploit","Payloads","Post-explotación","Reportes","Bug Bounty","Certificaciones","Proyecto Lab","DNS enum","Subdomain enum","Shodan","theHarvester","Maltego","Recon-ng","Banner grabbing","SNMP enum","SMB enum","FTP enum","SSH enum","HTTP enum","Directory busting","Vhost enum","Parameter fuzzing","WAF detection","SSL analysis","OpenVAS","Nikto","Nuclei","Burp Suite","OWASP ZAP","SQLi manual","SQLi blind","NoSQL injection","Command injection","XXE","Open redirect","File upload","Path traversal","IDOR","Auth bypass","JWT attacks","Session hijacking","Password reset","Race conditions","API security","GraphQL","WebSocket","CORS misconfig","Security headers","Clickjacking","SSTI","Deserialization","Buffer overflow","Privesc Linux","Privesc Windows","Pivoting","Red team ops","OSCP","Kali Linux intro","Permisos Linux","Cron jobs","Netcat","Socat","Meterpreter","Proxychains","Tor","VPN","Anonimato","SOCMINT","Metadata","Exiftool","Spiderfoot","Censys","Shodan filters","HIBP","Credential stuffing","Password spraying","Kerberoasting","Golden ticket","DCSync","BloodHound","AMSI bypass","UAC bypass","AV evasion","Process injection","DLL hijacking","Persistence Windows","Persistence Linux","Reverse engineering","Ghidra","x64dbg","Malware analysis","Mobile hacking","Frida","Objection","Cloud hacking","AWS pentesting","Kubernetes hacking","Docker escape","CI/CD attacks","Supply chain","Cryptojacking","Physical pentesting","Lockpicking","RFID cloning","WiFi pentesting","Aircrack-ng","Evil twin","Bluetooth hacking","Hardware hacking","JTAG","UART","IoT hacking","SCADA/ICS","C2 frameworks","Cobalt Strike","MITRE ATT&CK","Threat hunting","SIEM","Splunk","ELK","Wazuh","YARA","Sigma","Forensics","Volatility","Autopsy","Incident response","ISO 27001","GDPR","Compliance","HackerOne","Bugcrowd","CVSS","Exploit writing","Threat modeling","Rules of engagement"];
-const TX_BASE=["¿Qué es Termux?","Instalar Termux","Comandos básicos","ls y cd","pwd","mkdir","rm","cp y mv","cat","head y tail","less","nano","vim","pkg update","pkg upgrade","pkg install","pkg uninstall","pkg search","termux-setup-storage","Variables de entorno","PATH","Aliases","Bashrc","SSH cliente","ssh-keygen","SSH server","sshd","scp","rsync","FTP server","HTTP server","Nginx","Apache","PHP","Python","pip","Node.js","npm","Go","Rust","Java","Ruby","Git","GitHub CLI","git clone","git commit","git push","git branch","git merge","git rebase","git stash","Nmap","Nmap flags","Nmap scripts","Metasploit","msfconsole","msfvenom","Hydra","Hashcat","SQLmap","Gobuster","Nikto","WPScan","Proxydroid","Ngrok","Cloudflared","Tor","tcpdump","Wireshark","tshark","Aircrack","Airmon-ng","Airodump-ng","Wifite","Bettercap","Ettercap","ARP spoofing","DNS spoofing","SSL strip","MITM","BeEF","SET","SocialFish","Zphisher","Seeker","Sherlock","theHarvester","Maltego","Recon-ng","Spiderfoot","whois","dig","nslookup","traceroute","ping","netstat","ss","iptables","ufw","fail2ban","ClamAV","rkhunter","lynis","OpenVAS","Nuclei","Burp Suite","OWASP ZAP","Wapiti","Amass","Subfinder","Assetfinder","DNSRecon","DNSenum","Massdns","HTTPx","Httprobe","Hakrawler","Gau","Waybackurls","Gospider","Katana","ParamSpider","Arjun","Wfuzz","FFuf","Dirsearch","Feroxbuster","Nuclei templates","Análisis de resultados","Reporte final","Deploy Vercel","Custom domains","SSL Let's Encrypt","Backups","Cron jobs","Systemd services","Logs","Monitorización","htop","free","df","lsof","strace","Sniffing pasivo","Sniffing activo","ARP poisoning","DNS poisoning","SSL stripping","Certificate pinning","Bypass pinning","Frida scripts","Apktool","Jadx","dex2jar","MobSF","Frida setup","Frida hooking","Frida injection","Frida SSL","Frida root","Frida memory","Frida Java","Frida native","Objection setup","Objection android","Objection ios","Objection explore","Objection ssl","Objection root"];
-const KL_BASE=["¿Qué es Kali Linux?","Instalar Kali","Kali en VM","Kali en WSL","Kali en Termux","Kali live USB","Actualizar Kali","apt en Kali","dpkg","Snap en Kali","Repositorios","Metapackages","Kali tools","Kali menu","Kali top 10","Nmap Kali","Metasploit Kali","Burp Kali","Wireshark Kali","Aircrack Kali","Hydra Kali","John Kali","Hashcat Kali","SQLmap Kali","Gobuster Kali","Nikto Kali","WPScan Kali","Maltego Kali","BeEF Kali","SET Kali","MSFvenom","Meterpreter","Post-explotación","Privilege escalation","Linux privesc","Windows privesc","Reverse shells","Bind shells","Netcat","Socat","Pivoting","Proxychains","SSH tunneling","Chisel","Ligolo","DNS tunneling","ICMP tunneling","Firewall evasion","AV evasion","AMSI bypass","PowerShell tricks","Mimikatz","BloodHound","SharpHound","PowerView","Rubeus","Kerberoasting","ASREPRoasting","Golden ticket","Silver ticket","DCSync","Pass the hash","Credential dumping","LSASS dump","SAM dump","NTDS.dit","Secretsdump","Responder","LLMNR poisoning","NBT-NS poisoning","WPAD","IPv6 attacks","mitm6","NTLM relay","SMB relay","LDAP relay","Kerberos attacks","Constrained delegation","Unconstrained delegation","ADCS attacks","ESC1","ESC8","PetitPotam","PrintNightmare","ZeroLogon","EternalBlue","BlueKeep","SMBGhost","ProxyLogon","ProxyShell","Log4Shell","Shellshock","Heartbleed","Dirty COW","PwnKit","Sudo Baron","Polkit","Kernel exploits","ExploitDB","SearchSploit","CVE databases","NVD","MITRE","CVSS scoring","Web app pentesting","Burp Suite intro","Burp proxy","Burp repeater","Burp intruder","Burp scanner","Burp extensions","OWASP ZAP intro","ZAP proxy","ZAP scan","ZAP fuzzing","SQLi avanzado","NoSQLi","XXE","SSRF","XSS avanzado","CSP bypass","CORS","Clickjacking","WebSockets","GraphQL hacking","API hacking","Postman","Insomnia","JWT attacks","OAuth attacks","SAML attacks","Session fixation","Cookie attacks","CSRF avanzado","File upload","Path traversal","LFI","RFI","Command injection","Code injection","Template injection","Deserialization","Prototype pollution","Race conditions","Business logic","IDOR","Access control","Auth bypass","2FA bypass","Password reset","Rate limiting","WAF bypass","Cloud pentesting","AWS essentials","IAM misconfig","S3 buckets","EC2 metadata","Lambda attacks","Azure AD","GCP","Kubernetes","Docker escape","Container security","CI/CD attacks","Supply chain","Dependency confusion","Cryptography","Symmetric crypto","Asymmetric crypto","Hashing","Digital signatures","PKI","TLS/SSL","OpenSSL","VPN","IPSec","WireGuard","OpenVPN","WiFi hacking","WPA2","WPA3","Evil twin","Rogue AP","Deauth attacks","PMKID","Handshake capture","Aircrack-ng","Wifite","Reaver WPS","Bluetooth hacking","BLE","Zigbee","SDR","RFID","NFC","Hardware hacking","JTAG","UART","SPI","I2C","Logic analyzer","Oscilloscope","Raspberry Pi","Arduino","Flipper Zero","Proxmark","HackRF","RTL-SDR","Mobile pentesting","Android","iOS","APK analysis","Frida","Objection","MobSF","Burp mobile","SSL pinning","Root detection","Emulator detection","Reverse engineering","Ghidra","IDA","Radare2","x64dbg","OllyDbg","Binary analysis","Malware analysis","Static analysis","Dynamic analysis","Sandboxing","YARA","Sigma","Threat intel","OSINT avanzado","Social media intel","Dark web","OSINT tools","Anonymity","Tor","VPN chains","Proxies","Tails OS","Whonix","Qubes OS","Physical security","Lockpicking","Locksport","Social engineering","Pretexting","Vishing","Phishing","Spear phishing","Whaling","BEC","Red team ops","C2 frameworks","Cobalt Strike","Sliver","Mythic","Empire","Redirectors","Domain fronting","Living off the land","MITRE ATT&CK","Cyber kill chain","Diamond model","Incident response","NIST 800-61","Forensics","Memory forensics","Disk forensics","Volatility","Autopsy","Network forensics","Log analysis","Timeline","Malware triage","Threat hunting","SIEM","Splunk","ELK","Wazuh","Compliance","ISO 27001","GDPR","PCI DSS","HIPAA","SOC 2","Risk management","Vuln management","Patch management","Security awareness","Penetration testing","Scoping","Rules of engagement","Reporting","Remediation","Retesting"];
+const PY_BASE=["Introducción a Python","Instalar Python","Variables","Tipos de datos","Operadores aritméticos","Strings","Input del usuario","Conversión de tipos","Condicional if","if/else","elif","Operadores lógicos","Bucle while","Bucle for","range()","Listas","Métodos de listas","Tuplas","Sets","Diccionarios","Métodos de dict","Funciones","Parámetros y return","Scope","Módulos","Librería random","Try/except","Archivos","Clases y objetos","Herencia","Polimorfismo","List comprehension","Lambda","map/filter","Decoradores","Generadores","Regex","JSON","Errores comunes","Proyecto Calculadora"];
+const HK_BASE=["¿Qué es hacking ético?","Tipos de hackers","Ética y legalidad","Recon pasivo","Recon activo","Google Dorking","OSINT","Whois y DNS","Nmap básico","Nmap avanzado","Enumeración","Gobuster","OWASP Top 10","SQL injection","SQLmap","XSS","CSRF","SSRF","Fuerza bruta","Hydra","John the Ripper","Hashcat","Ingeniería social","Phishing","Sniffing","Wireshark","MITM","ARP Spoofing","Cripto básica","Hashing","SSL/TLS","Firewalls","IDS/IPS","Metasploit","Payloads","Post-explotación","Reportes","Bug Bounty","Certificaciones","Proyecto Lab"];
+const TX_BASE=["¿Qué es Termux?","Instalar Termux","Comandos básicos","ls y cd","pwd","mkdir","rm","cp y mv","cat","head y tail","less","nano","vim","pkg update","pkg upgrade","pkg install","pkg uninstall","pkg search","termux-setup-storage","Variables de entorno","PATH","Aliases","Bashrc","SSH cliente","ssh-keygen","SSH server","sshd","scp","rsync","FTP server","HTTP server","Nginx","Apache","PHP","Python","pip","Node.js","npm","Go","Rust","Java","Ruby"];
+const KL_BASE=["¿Qué es Kali Linux?","Instalar Kali","Kali en VM","Kali en WSL","Kali en Termux","Kali live USB","Actualizar Kali","apt en Kali","dpkg","Snap en Kali","Repositorios","Metapackages","Kali tools","Kali menu","Kali top 10","Nmap Kali","Metasploit Kali","Burp Kali","Wireshark Kali","Aircrack Kali","Hydra Kali","John Kali","Hashcat Kali","SQLmap Kali","Gobuster Kali","Nikto Kali","WPScan Kali","Maltego Kali","BeEF Kali","SET Kali","MSFvenom","Meterpreter","Post-explotación","Privilege escalation","Linux privesc","Windows privesc","Reverse shells","Bind shells","Netcat","Socat"];
 
-// Generar EXACTAMENTE 300 por curso
 const PY=generarLecciones(PY_BASE,300,"Python");
 const HK=generarLecciones(HK_BASE,300,"Hacking Ético");
 const TX=generarLecciones(TX_BASE,300,"Termux");
 const KL=generarLecciones(KL_BASE,300,"Kali Linux");
 
-console.log('Lecciones generadas: PY='+PY.length+' HK='+HK.length+' TX='+TX.length+' KL='+KL.length);
+dbg('Lecciones: PY='+PY.length+' HK='+HK.length+' TX='+TX.length+' KL='+KL.length,'#0ff');
 
 const CURSOS={
 python:{nombre:"Python",color:"#58cc02",color2:"#3a8f01",clase:"active-python",lecciones:PY},
@@ -306,6 +330,7 @@ function totalCompletadas(){return Object.values(progreso).reduce((a,b)=>a+b,0);
 auth.onAuthStateChanged((u)=>{
 if(u){
 currentUser=u;isVip=VIP_EMAILS.includes(u.email);
+dbg('Login: '+u.email+(isVip?' [VIP]':''),'#0ff');
 document.getElementById('auth-overlay').style.display='none';
 document.getElementById('welcome-overlay').classList.remove('active');document.getElementById('welcome-overlay').style.display='none';
 document.getElementById('user-bar').style.display='flex';
@@ -350,7 +375,7 @@ streak=1;energia=isVip?99999:100;ultimaRecarga=Date.now();
 await db.collection('usuarios').doc(uid).set({email:currentUser.email,xp:0,level:1,streak:1,energia:isVip?99999:100,ultimaRecarga:Date.now(),progreso:{python:0,hacking:0,termux:0,kali:0},errores:[],adsterraTaps:0,waifuId:'waifu1',waifuSize:2.5,vistoBienvenida:true});
 actualizarStats();renderPath();mostrarBienvenida();
 }
-}catch(e){console.error(e);}
+}catch(e){dbg('Error cargar: '+e.message,'#f00');}
 }
 
 function calcularEnergia(){if(isVip){energia=99999;return;}const a=Date.now();const t=a-ultimaRecarga;const g=Math.floor(t/REGEN_MS);if(g>0){energia=Math.min(100,energia+g);ultimaRecarga=a-(t%REGEN_MS);}}
@@ -385,11 +410,10 @@ function cerrarWaifus(){document.getElementById('modal-waifus').classList.remove
 function seleccionarWaifu(id){const w=WAIFUS.find(x=>x.id===id);if(!w)return;currentWaifu=w;cargarWaifu(w);cerrarWaifus();abrirWaifus();guardarProgreso();aquaSpeak(`¡Ahora soy ${w.name}! 😏`,2500);}
 function cambiarTamano(v,fromSlider){if(fromSlider)waifuSize=parseFloat(v);else waifuSize=Math.max(1,Math.min(5,waifuSize+parseFloat(v)));if(modelo3D)modelo3D.scale.set(waifuSize,waifuSize,1);document.getElementById('size-slider').value=waifuSize;document.getElementById('size-val').innerText=waifuSize.toFixed(1)+'x';localStorage.setItem('waifuSize',waifuSize);guardarProgreso();}
 
-// RENDER — MUESTRA TODAS LAS LECCIONES
 function renderPath(){
 const c=CURSOS[cursoActual];const p=progreso[cursoActual];
 const cont=document.getElementById('path-container');cont.innerHTML='';
-console.log('Renderizando',c.lecciones.length,'lecciones para',cursoActual);
+dbg('Render '+cursoActual+': '+c.lecciones.length+' lecciones','#0ff');
 for(let i=0;i<c.lecciones.length;i++){
 const l=c.lecciones[i];const n=document.createElement('div');
 n.className='node';n.innerHTML=`<span class="node-num">${i+1}</span><span class="node-mini">${l.t.substring(0,10)}</span>`;
@@ -405,7 +429,6 @@ document.getElementById('tab-kali').className='course-tab'+(cursoActual==='kali'
 }
 function switchCourse(c){cursoActual=c;renderPath();aquaSpeak(`¡${CURSOS[c].nombre}! 😏`,2000);}
 
-// LECCIONES
 let preguntasActuales=[],pregIdx=0,respuestasCorrectas=0;
 function abrirLeccion(idx,curso){
 const key=curso||cursoActual;const lec=CURSOS[key].lecciones[idx];if(!lec)return;
@@ -465,7 +488,7 @@ mostrarPaso();
 }
 function cerrarLeccion(){document.getElementById('lesson-overlay').classList.remove('active');moverWaifuLeccion(false);}
 
-// AQUA / TTS
+// AQUA / TTS con DEBUG
 const aquaBubble=document.getElementById('aqua-bubble');
 let currentAudio=null;
 async function aquaSpeak(text,dur=4000){
@@ -473,27 +496,24 @@ if(!aquaVisible)return;
 aquaBubble.innerText=text;aquaBubble.classList.add('show');
 clearTimeout(window.bT);window.bT=setTimeout(()=>aquaBubble.classList.remove('show'),dur);
 if(currentAudio){currentAudio.pause();currentAudio=null;}
+dbg('─── TTS ───','#ff0');
+dbg('Voz: '+currentWaifu.voice,'#0ff');
 try{
-console.log('TTS request → voice:',currentWaifu.voice,'text:',text.substring(0,30));
+dbg('POST /api/tts...','#fff');
 const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texto:text,voice_id:currentWaifu.voice})});
-console.log('TTS response status:',r.status);
-if(!r.ok){
-const errTxt=await r.text();
-console.error('TTS error:',r.status,errTxt);
-return;
-}
+dbg('HTTP '+r.status,r.ok?'#0f0':'#f00');
+if(!r.ok){const errTxt=await r.text();dbg('ERROR: '+errTxt.substring(0,200),'#f00');return;}
 const blob=await r.blob();
+dbg('Audio: '+blob.size+' bytes','#0f0');
+if(blob.size<100){dbg('⚠ Audio vacío','#ff0');return;}
 const url=URL.createObjectURL(blob);
 currentAudio=new Audio(url);
 await currentAudio.play();
-currentAudio.onended=()=>{URL.revokeObjectURL(url);currentAudio=null;};
-}catch(e){console.error('TTS excepción:',e);}
+dbg('▶ Reproduciendo','#0f0');
+currentAudio.onended=()=>{URL.revokeObjectURL(url);currentAudio=null;dbg('✓ Fin','#0f0');};
+}catch(e){dbg('EXC: '+e.message,'#f00');}
 }
-// Función de prueba manual
-window.testTTS=async function(){
-console.log('Probando TTS manual...');
-await aquaSpeak('Hola, soy tu waifu favorita. Bienvenido a CodeMaster.',4000);
-};
+window.testTTS=async function(){dbg('=== TEST MANUAL ===','#ff0');await aquaSpeak('Hola, soy tu waifu.',4000);};
 
 function toggleAqua(){aquaVisible=!aquaVisible;document.getElementById('canvas3d').style.opacity=aquaVisible?'1':'0';document.getElementById('aqua-handle').style.display=aquaVisible?'block':'none';aquaBubble.classList.remove('show');const t=document.getElementById('toggle-aqua');t.classList.toggle('off',!aquaVisible);t.innerText=aquaVisible?'👁️':'🚫';}
 
@@ -507,7 +527,7 @@ function moverWaifuLeccion(a){if(!modelo3D)return;if(a){const sc=(8*Math.tan(Mat
 
 function toggleChat(){const b=document.getElementById('chat-input-bar');const f=document.querySelector('.chat-fab');b.classList.toggle('active');f.classList.toggle('active');f.innerText=b.classList.contains('active')?'✕':'💬';}
 function handleChatKey(e){if(e.key==='Enter')sendChat();}
-async function sendChat(){const i=document.getElementById('chat-input');const t=i.value.trim();if(!t)return;i.value='';aquaSpeak('...',1500);try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mensaje:t,waifu:currentWaifu.name})});const d=await r.json();aquaSpeak(d.respuesta,5000);}catch(e){aquaSpeak("Error de conexión.",3000);}}
+async function sendChat(){const i=document.getElementById('chat-input');const t=i.value.trim();if(!t)return;i.value='';aquaSpeak('...',1500);try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mensaje:t,waifu:currentWaifu.name})});const d=await r.json();aquaSpeak(d.respuesta,5000);}catch(e){dbg('Chat error: '+e.message,'#f00');aquaSpeak("Error de conexión.",3000);}}
 
 // THREE
 const canvas=document.getElementById('canvas3d');
@@ -521,6 +541,7 @@ let modelo3D,aquaBaseX=0,aquaBaseY=0;
 
 function cargarWaifu(w){
 if(modelo3D){scene.remove(modelo3D);if(modelo3D.geometry)modelo3D.geometry.dispose();if(modelo3D.material){if(modelo3D.material.map)modelo3D.material.map.dispose();modelo3D.material.dispose();}modelo3D=null;}
+dbg('Cargando: '+w.model,'#0ff');
 const texLoader=new THREE.TextureLoader();
 texLoader.load(w.model,texture=>{
 texture.minFilter=THREE.LinearFilter;
@@ -534,7 +555,8 @@ modelo3D.scale.set(waifuSize,waifuSize,1);
 const r=aquaHandle.getBoundingClientRect();
 updateWaifu3D(r.left+70,r.top+110);
 scene.add(modelo3D);
-},undefined,e=>console.error('Error PNG:',e));
+dbg('✓ Waifu cargada','#0f0');
+},undefined,e=>dbg('❌ Error PNG: '+e.message,'#f00'));
 }
 
 const clock=new THREE.Clock();
@@ -542,7 +564,6 @@ function animate(){requestAnimationFrame(animate);if(modelo3D&&!dragging){modelo
 animate();
 window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
 
-// BIENVENIDA
 function mostrarBienvenida(){welcomePaso=0;const el=document.getElementById('welcome-overlay');el.style.display='flex';el.classList.add('active');renderWelcome();}
 function renderWelcome(){const p=WELCOME_STEPS[welcomePaso];const c=document.getElementById('welcome-card');const pr=document.getElementById('welcome-progress');document.getElementById('welcome-sub').innerText=welcomePaso===0?"Tu aventura comienza":"";pr.innerHTML='';WELCOME_STEPS.forEach((_,i)=>{const d=document.createElement('div');d.className='welcome-dot'+(i===welcomePaso?' active':'');pr.appendChild(d);});c.innerHTML=`<div class="welcome-step"><div class="icon">${p.icon}</div><div class="text"><strong>${p.title}</strong>${p.text}</div></div>`;document.querySelector('.welcome-btn').innerText=welcomePaso===WELCOME_STEPS.length-1?"¡EMPEZAR! 🚀":"SIGUIENTE ➤";}
 function welcomeNext(){if(welcomePaso<WELCOME_STEPS.length-1){welcomePaso++;renderWelcome();}else{const el=document.getElementById('welcome-overlay');el.classList.remove('active');el.style.display='none';aquaSpeak("¡Bienvenido! 😏",4000);}}
@@ -550,6 +571,7 @@ function welcomeNext(){if(welcomePaso<WELCOME_STEPS.length-1){welcomePaso++;rend
 setInterval(()=>{calcularEnergia();actualizarStats();},30000);
 renderPath();
 actualizarBotonEnergia();
+dbg('✓ App lista','#0f0');
 </script>
 </body>
 </html>
