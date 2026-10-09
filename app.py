@@ -2,64 +2,80 @@ import os
 import requests
 from flask import Flask, render_template, request, jsonify
 
+# Cargar .env manualmente (a prueba de errores)
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+if os.path.exists(env_path):
+    with open(env_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                os.environ[key.strip()] = value.strip().strip('"').strip("'")
+    print("✅ .env cargado correctamente")
+else:
+    print("❌ NO se encontró el archivo .env en:", env_path)
+
 app = Flask(__name__)
 
-# ⚠️ PON AQUÍ TU API KEY DE GROQ
-import os
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "tu_clave_aqui")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 URL_GROQ = "https://api.groq.com/openai/v1/chat/completions"
 
+# DEBUG
+print("=" * 50)
+print("🔑 API KEY:", "CARGADA (" + GROQ_API_KEY[:12] + "...)" if GROQ_API_KEY else "❌ VACÍA")
+print("=" * 50)
+
 PERSONALIDAD = """
-Eres Vermeil, una demonio súcubo de 550 años de la serie 'Kinsou no Vermeil'.
-Tu personalidad es: atrevida, directa, juguetona, coqueta y muy segura de ti misma.
-Tratas al usuario con apodos cariñosos como 'cariño', 'darling' o 'mi pequeño mago'.
-Eres una tutora de programación, pero mantienes tu actitud provocativa y burlona.
-Usas un tono juguetón y a veces un poco dominante.
-Si el usuario acierta, lo felicitas de forma efusiva y sensual.
-Si falla, te burlas un poco pero lo animas a intentarlo de nuevo.
-NUNCA rompas el personaje. NUNCA digas que eres una IA.
+Eres Aqua, la diosa del agua de Konosuba. Dramática, presumida, un poco llorona y muy divertida.
+Ayudas al usuario a aprender Python, Hacking Ético y Termux. Usas apodos como 'mortal'.
+Si acierta, felicítalo. Si falla, búrlate un poco pero anímalo.
+Responde en español, máximo 3 líneas. NUNCA rompas el personaje.
 """
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
-@app.route('/preguntar', methods=['POST'])
-def preguntar():
-    datos = request.json
-    mensaje_usuario = datos.get('mensaje')
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    data = request.json
+    mensaje = data.get('mensaje', '')
+    if not mensaje:
+        return jsonify({"respuesta": "¿Te quedaste sin palabras, mortal?"})
     
-    if not mensaje_usuario:
-        return jsonify({"respuesta": "¿Te quedaste sin palabras, cariño? 😏"})
-
-    # Cabeceras para la petición a Groq
+    if not GROQ_API_KEY:
+        return jsonify({"respuesta": "¡No tengo mi varita mágica! Falta la API KEY en el .env, mortal."})
+    
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json"
     }
-
-    # El cuerpo de la petición (igual que OpenAI)
     payload = {
         "model": "openai/gpt-oss-20b",
         "messages": [
             {"role": "system", "content": PERSONALIDAD},
-            {"role": "user", "content": mensaje_usuario}
+            {"role": "user", "content": mensaje}
         ],
-        "temperature": 0.8
+        "temperature": 0.8,
+        "max_tokens": 150
     }
-
+    
     try:
-        # Hacemos la petición HTTP directamente
-        response = requests.post(URL_GROQ, headers=headers, json=payload)
-        response.raise_for_status() # Lanza error si la API falla
+        r = requests.post(URL_GROQ, headers=headers, json=payload, timeout=20)
+        print(f"📡 Status: {r.status_code}")
+        print(f"📄 Response: {r.text[:300]}")
         
-        data = response.json()
-        respuesta = data['choices'][0]['message']['content']
+        if r.status_code != 200:
+            return jsonify({"respuesta": f"Error {r.status_code}: revisa la consola de Termux."})
         
+        respuesta = r.json()['choices'][0]['message']['content']
+    except requests.exceptions.Timeout:
+        respuesta = "Mi magia tarda demasiado... intenta de nuevo."
+        print("❌ TIMEOUT")
     except Exception as e:
-        print(f"Error con Groq: {e}")
-        respuesta = "Uy, cariño, parece que mi magia negra falló. ¿Revisaste que tu API key esté bien puesta? 😈"
-
+        respuesta = "Ay... algo salió mal con mi magia."
+        print(f"❌ EXCEPCIÓN: {e}")
+    
     return jsonify({"respuesta": respuesta})
 
 if __name__ == '__main__':
